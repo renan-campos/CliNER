@@ -39,6 +39,9 @@ def main():
     # Parse command line arguments
     args = parser.parse_args()
 
+    if args.format != 'i2b2':
+    print >>sys.stderr, 'Evaluation for xml not supported yet'
+    exit(1)
 
     # Is output destination specified
     if args.output:
