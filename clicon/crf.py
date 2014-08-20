@@ -173,7 +173,8 @@ def predict(clf, X):
         yseq = [ int(n) for n in tagger.tag(xseq) ]
         retVal += list(yseq)
         Y.append(list(yseq))
-    
+
+
     # Sanity Check detection: feature & label predictions
     #with open('a','w') as f:
     #    for x,y in zip(xseq,Y):

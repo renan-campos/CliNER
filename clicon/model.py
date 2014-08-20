@@ -371,10 +371,12 @@ v                              AKA each index from inds_list maps to a label
 
             print '\tvectorizing features (pass one) ' + flabel
 
+
             # Save list structure to reconstruct after vectorization
             offsets = [ len(sublist) for sublist in fset ]
             for i in range(1, len(offsets)):
                 offsets[i] += offsets[i-1]
+
 
             # Vectorize features
             flattened = [item for sublist in fset for item in sublist]

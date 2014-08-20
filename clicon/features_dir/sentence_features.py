@@ -244,10 +244,12 @@ class SentenceFeatures:
             for i in range(len(features_list))]
 
 
+        '''
         for f in features_list:
             print sorted(f.items())
             print
         print '\n\n\n'
+        '''
 
         return features_list
 
@@ -318,14 +320,12 @@ class SentenceFeatures:
                     umls_features = self.feat_umls.IOB_nonprose_features(word)
                     features_list[i].update( umls_features )
 
-            '''
             # Feature: Test Result (for each chunk)
             if feature == "test_result":
                 for index, features in enumerate(features_list):
                     right = " ".join([w for w in sentence[index:]])
                     if self.feat_word.is_test_result(right):
                         features['test_result'] = 1
-            '''
 
 
 

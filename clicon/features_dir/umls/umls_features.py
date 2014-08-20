@@ -84,7 +84,7 @@ class UMLSFeatures:
                 # Get UMLS semantic type (could have multiple)
                 mapping = umls.umls_semantic_type_word(self.umls_lookup_cache , word )
 
-                print mapping
+                #print mapping
 
                 # If is at least one semantic type
                 if mapping != None:
