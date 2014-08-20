@@ -10,6 +10,7 @@
 
 import interface_genia
 from features_dir import utilities
+from genia_cache import GeniaCache
 
 
 class GeniaFeatures:
@@ -26,9 +27,17 @@ class GeniaFeatures:
         # Filter out nonprose sentences
         prose = [ sent  for  sent  in  data  if  utilities.prose_sentence(sent) ]
 
-        # Process prose sentences with GENIA tagger
-        self.GENIA_features = iter(interface_genia.genia(tagger, prose))
+        # Lookup cache for developing (constantly rerunning GENIA takes time)
+        self.cache = GeniaCache()
 
+        # Process prose sentences with GENIA tagger
+        if self.cache.has_key(prose):
+            tagged = self.cache.get_map(prose)
+        else:
+            tagged = interface_genia.genia(tagger, prose)
+            self.cache.add_map(prose, tagged)
+
+        self.GENIA_features = iter(tagged)
 
 
 
