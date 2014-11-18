@@ -107,10 +107,11 @@ def lineno_and_tokspan(line_inds, data, text, char_span):
 
 
 # Helper function
-def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan):
+def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan,fname='foo'):
     """ File character offsets => line number and index into line """
 
     start,end = line_inds[lineno]
+    startTok,endTok = tokspan
 
     dataWithEmpty= text[start:end].replace('\n',' ').replace('\t',' ').split(' ')
 
@@ -123,7 +124,7 @@ def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan):
 
     tokPosRelToSent = []
     count = 0
-    for string in dataWithEmptyChars:
+    for string in dataWithEmpty:
         if string != '':
             tokPosRelToSent.append((count, count + len(string)-1))
             count += len(string) + 1
@@ -141,29 +142,14 @@ def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan):
     #print startOfTokRelToText, '  ', endOfTokRelToText
 
     # Heuristc / Hack for determining when to include extra space
-    if (    self.text[endOfTokRelToText  ].isalpha()) and \
-       (not self.text[endOfTokRelToText+1].isalpha()) :
+    if (    text[endOfTokRelToText  ].isalpha()) and \
+       (not text[endOfTokRelToText+1].isalpha()) :
                endOfTokRelToText += 1
 
     #print startOfTokRelToText, '  ', endOfTokRelToText
     #print '\n'
 
-    if line not in spans:
-        spans[line] = (self.fileName + ".text||Disease_Disorder||CUI-less||" + str(startOfTokRelToText) + "||" +  str(endOfTokRelToText))
-    else:
-        spans[line] += ("\n" + self.fileName + ".text||Disease_Disorder||CUI-less||" + str(startOfTokRelToText) + "||" +  str(endOfTokRelToText))
-
-
-    print lineno
-    print tokspan
-    
-    line = data[lineno]
-
-    print line
-
-    print
-
-    return 0,0
+    return startOfTokRelToText,endOfTokRelToText
 
 
 

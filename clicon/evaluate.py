@@ -277,9 +277,9 @@ def generateResultsForExactSpans(truePositive, falseNegative, falsePositive):
     flaseNegative = float(falseNegative)
     falsePositive = float(falsePositive)
 
-    recall = truePositive / (truePositive + falseNegative)
-    precision = truePositive / (truePositive + falsePositive)
-    fScore = (2*truePositive) / (2*truePositive + falseNegative + falsePositive)
+    recall = truePositive / (truePositive + falseNegative + 1e-8)
+    precision = truePositive / (truePositive + falsePositive + 1e-8)
+    fScore = (2*truePositive) / (2*truePositive + falseNegative + falsePositive + 1e-8)
 
     #convert to percent                                                          
     return {"Recall":(recall * 100), "Precision":(precision * 100), "F Score":(fScore * 100)}

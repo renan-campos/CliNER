@@ -108,15 +108,17 @@ def predict(files, model_path, output_dir, format):
         # Predict concept labels
         labels = model.predict(note)
 
-        # Get predictions in proper format
+
+        # Output file
         extension = note.getExtension()
+        fname = os.path.splitext(os.path.basename(txt))[0] + '.' + extension
+        out_path = os.path.join(output_dir, fname)
+
+        # Get predictions in proper format
+        note.setFileName(os.path.split(txt)[-1])
         output = note.write(labels)
 
         #print output
-
-        # Output file
-        fname = os.path.splitext(os.path.basename(txt))[0] + '.' + extension
-        out_path = os.path.join(output_dir, fname)
 
         # Output the concept predictions
         print '\n\nwriting to: ', out_path

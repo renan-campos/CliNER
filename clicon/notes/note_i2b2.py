@@ -42,6 +42,10 @@ class Note_i2b2(AbstractNote):
         return self.text
 
 
+    def setFileName(self, fname):
+        pass # Not needed by Note_i2b2
+
+
     def getTokenizedSentences(self):
         return map(lambda s: (' '.join(s)).split(), self.data)
 

@@ -60,6 +60,11 @@ class Note_semeval(AbstractNote):
     def getLineIndices(self):
         return self.line_inds
 
+
+    def setFileName(self, fname):
+        self.fileName = fname
+
+
     def read_standard(self, txt, con=None):
 
         start = 0
@@ -127,7 +132,7 @@ class Note_semeval(AbstractNote):
     def read(self, txt, con=None):            
 
         # Filename
-        self.filename = os.path.split(txt)[1]
+        self.fileName = txt
 
         start = 0
         end = 0
@@ -271,15 +276,15 @@ class Note_semeval(AbstractNote):
         else:
             raise Exception('Cannot write concept file: must specify labels')
 
-        exit()
-
         # return value
         retStr = ''
 
         for concept,span_inds in classifications:
-            retStr += self.fileName + '.text||%s||CUI-less' % concept
-            for span in span_inds:
-                retStr += '||' + str(span[0]) + "||" +  str(span[1])
+            retStr += self.fileName + '||%s||CUI-less' % concept
+            # ASSUME: no non-contig
+            #for span in span_inds:
+            #    retStr += '||' + str(span[0]) + "||" +  str(span[1])
+            retStr += '||' + str(span_inds[0]) + "||" +  str(span_inds[1])
             retStr += '\n'
 
         return retStr

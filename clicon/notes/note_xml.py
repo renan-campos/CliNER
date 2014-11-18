@@ -47,6 +47,10 @@ class Note_xml(AbstractNote):
         return self.data
 
 
+    def setFileName(self, fname):
+        pass # Not needed by Note_xml
+
+
     def getClassificationTuples(self):
         # return value
         retVal = []

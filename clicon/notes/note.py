@@ -136,6 +136,12 @@ class Note:
             self.data = self.derived_note.getTokenizedSentences()
         return self.data
 
+    def setFileName(self, fname):
+        """
+        Purpose: Some formats (like semeval) need the filename as part of format
+        """
+        self.derived_note.setFileName(fname)
+
     def read_standard(self, txt, con=None):
         """
         Purpose: Every note must be able to read from standard forat

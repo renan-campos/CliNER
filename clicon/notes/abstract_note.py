@@ -85,6 +85,14 @@ class AbstractNote:
         raise Exception('Must define selector for derived class')
 
 
+    def setFileName(self):
+        """
+        Purpose: Set the note's text file base name (no extension)
+                 (needed because SemEval format requires knowing filename)
+        """
+        raise Exception('Must define selector for derived class')
+
+
     def read_standard(self, txt, con=None):
         """
         Purpose: Every note must be able to read from standardized forat
