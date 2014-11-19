@@ -279,8 +279,8 @@ class Note_i2b2(AbstractNote):
 
             concept = classification[0]
             lineno  = classification[1] 
-            start   = classification[2]
-            end     = classification[3]
+            start   = classification[2][0][0]   # NOTE: list of one (start,end)
+            end     = classification[2][0][1]   #       tuple
 
             # A list of words (corresponding line from the text file)
             text = tlist[lineno-1]

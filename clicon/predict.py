@@ -65,12 +65,22 @@ def main():
     format = args.format
 
 
+    # Tell user if not predicting
+    if not files:
+        print >>sys.stderr, "\n\tNote: You did not supply any input files\n"
+        exit()
+
+
+    # Load model
+    model = Model.load(args.model)
+
+
     # Predict
-    predict(files, args.model, args.output, format=format)
+    predict(files, model, args.output, format=format)
 
 
 
-def predict(files, model_path, output_dir, format):
+def predict(files, model, output_dir, format):
 
     # Must specify output format
     if format not in Note.supportedFormats():
@@ -78,17 +88,6 @@ def predict(files, model_path, output_dir, format):
         print >>sys.stderr,   '\tAvailable formats: ', ' | '.join(Note.supportedFormats())
         print >>sys.stderr, ''
         exit(1)
-
-
-
-    # Load model
-    model = Model.load(model_path)
-
-
-    # Tell user if not predicting
-    if not files:
-        print >>sys.stderr, "\n\tNote: You did not supply any input files\n"
-        exit()
 
 
     # For each file, predict concept labels

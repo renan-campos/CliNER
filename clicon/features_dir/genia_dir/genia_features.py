@@ -7,8 +7,14 @@
 ######################################################################
 
 
+import os,sys
 
 import interface_genia
+
+
+sources = os.path.join(os.getenv('CLICON_DIR'),'clicon')
+if sources not in sys.path: 
+    sys.path.append(sources)
 from features_dir import utilities
 
 
@@ -56,11 +62,18 @@ class GeniaFeatures:
         # Get the GENIA features of the current sentence
         genia_feats = next( self.GENIA_features )
 
+        #print
+        #print len(genia_feats)
+        #print len(features_list)
+        #print sentence
 
         # Feature: Current word's GENIA features
         for i,curr in enumerate(genia_feats):
             keys = ['GENIA-stem','GENIA-POS','GENIA-chunktag']
             #keys = ['GENIA-stem','GENIA-POS','GENIA-chunktag', 'GENIA-NEtag']
+            #print '\t', curr['GENIA-stem']
+            #print '\t', sentence[i]
+            #print
             output = dict( ((k, curr[k]), 1) for k in keys if k in curr )
             features_list[i].update(output)
 

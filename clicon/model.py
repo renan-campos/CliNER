@@ -4,6 +4,7 @@ import os
 import cPickle as pickle
 import helper
 import sys
+from collections import defaultdict
 
 from sklearn.feature_extraction  import DictVectorizer
 
@@ -31,26 +32,33 @@ class Model:
         # Use python-crfsuite
         self.crf_enabled = is_crf
 
+        # Third pass trained
+        self.is_third = False
+
         # DictVectorizers
         self.first_prose_vec    = DictVectorizer()
         self.first_nonprose_vec = DictVectorizer()
         self.second_vec         = DictVectorizer()
+        self.third_vec          = DictVectorizer()
 
         # Classifiers
         self.first_prose_clf    = None
         self.first_nonprose_clf = None
         self.second_clf         = None
+        self.third_clf          = None
 
 
 
-    def train(self, notes, do_grid=False):
+    def train(self, notes, do_grid=False, third=False):
 
         """
         Model::train()
 
         Purpose: Train a ML model on annotated data
 
-        @param notes. A list of Note objects (containing text and annotations)
+        @param notes    list of Note objects (containing text and annotations)
+        @param do_grid  indicates whether to perform grid search
+        @param third    indicates whether to perform third/clustering pass
         @return       None
         """
 
@@ -90,6 +98,40 @@ class Model:
         # Train classifier (side effect - saved as object's member variable)
         print 'second pass'
         self.second_train(data2, inds, Y2, do_grid)
+
+
+
+        ##############
+        # Third pass #
+        ##############
+
+        if third:
+
+            # Set indicator to True
+            self.is_third = True
+
+            # Get data and annotations of which spans actaully should be grouped
+            classifications = []
+            chunks = []
+            for note in notes:
+                # Annotations for groups
+                seen = len(chunks)
+                non_offset = note.getNonContiguousSpans()
+                offset = [ (c[0],c[1]+seen,c[2]) for c in non_offset ]
+                classifications += offset
+
+                # Chunked text
+                chunks += note.getChunkedText()
+
+            # Data of all candidates
+            indices = [  note.getConceptIndices()  for  note  in  notes  ]
+            inds  = reduce( concat, indices )
+
+            # Train classifier (side effect - saved as object's member variable)
+            print 'third pass'
+            self.third_train(chunks, classifications, inds, do_grid)
+
+
 
 
 
@@ -240,6 +282,78 @@ class Model:
 
 
 
+
+    def third_train(self, chunks, classifications, inds, do_grid=False):
+
+        # Create more explicit and easy-to-query relationship lookup
+        # query line number & chunk index to get list of shared chunk indices
+        relations = defaultdict(lambda:defaultdict(lambda:[]))
+        for concept,lineno,spans in classifications:
+            for i in range(len(spans)):
+                key = spans[i]
+                for j in range(len(spans)):
+                    if i == j: continue
+                    relations[lineno][key].append(spans[j])
+
+        #print chunks
+        #print
+        #print classifications
+        #print
+        #print inds
+
+        print '\textracting  features (pass three)'
+        # Extract features between pairs of chunks
+        unvectorized_X = []
+        for lineno,indices in enumerate(inds):
+            # Cannot have pairwise relationsips with either 0 or 1 objects
+            if len(indices) < 2: continue
+
+            # Build (n choose 2) booleans
+            features = []
+            for i in range(len(indices)):
+                for j in range(i+1,len(indices)):
+                    #print indices[i], indices[j]
+                    feats = {i:1,j:1}
+
+                    # Positive or negative result for training
+                    features.append(feats)
+
+            unvectorized_X += features
+
+
+        print '\tvectorizing features (pass one)'
+
+        # Construct boolean vector of annotations
+        Y = []
+        for lineno,indices in enumerate(inds):
+            # Cannot have pairwise relationsips with either 0 or 1 objects
+            if len(indices) < 2: continue
+
+            # Build (n choose 2) booleans
+            bools = []
+            for i in range(len(indices)):
+                for j in range(i+1,len(indices)):
+                    # Does relationship exist between this pair?
+                    if indices[j] in relations[lineno][indices[i]]:
+                        #print indices[i], indices[j]
+                        shared = 1
+                    else:
+                        shared = 0
+                    # Positive or negative result for training
+                    bools.append(shared)
+            Y += bools
+
+        # Vectorize features
+        X = self.third_vec.fit_transform(unvectorized_X)
+
+
+        print '\ttraining classifier  (pass one)'
+
+        # Train classifier
+        self.third_clf = sci.train(X, Y, do_grid)
+
+
+
         
     # Model::predict()
     #
@@ -275,10 +389,24 @@ class Model:
         inds   = note.getConceptIndices()
 
         # Predict concept labels
-        retVal = self.second_predict(chunks,inds)
+        classifications = self.second_predict(chunks,inds)
 
 
-        return retVal
+
+        ##############
+        # Third pass #
+        ##############
+
+        # Third pass enabled?
+        if False:
+            print 'third pass'
+            clustered = [ (c[0],c[1],[(c[2],c[3])]) for c in classifications ]
+        else:
+            # Treat each as its own set of spans (each set containing one tuple)
+            clustered = [ (c[0],c[1],[(c[2],c[3])]) for c in classifications ]
+
+
+        return clustered
 
 
 

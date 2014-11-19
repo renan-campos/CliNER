@@ -85,6 +85,10 @@ def genia(geniatagger, data):
         # Get tagged output from cache
         tags = cache.get_map(line)
 
+        # Some tokenized sentences are very long
+        if tags and 'warning: the sentence seems to be too long' in tags[0]:
+            tags = tags[1:]
+
         for tag in tags:
             tag = tag.split()
             output = { 'GENIA-word'    : tag[0] ,

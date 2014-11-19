@@ -99,6 +99,10 @@ def lineno_and_tokspan(line_inds, data, text, char_span):
             #print "USING tok_span on data[i]", data[i][tok_span[0]], data[i][tok_span[1]]
             #print "USING char_span on text: ", text[char_span[0]], text[char_span[1]]
 
+            if (i==40) and (tuple(tok_span)==(13,15)):
+                print 'AAAAAAA'
+                exit()
+
             return (i, tuple(tok_span))
 
     return None
@@ -115,12 +119,13 @@ def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan,fname=
 
     dataWithEmpty= text[start:end].replace('\n',' ').replace('\t',' ').split(' ')
 
-    print 'start: ', start
-    print 'end:   ', end
-    print 'dataWith: ', dataWithEmpty
-    print
-    print 'data:     ', data[lineno]
-    print '\n\n\n'
+    #print '\n\n\n'
+    #print 'start: ', start
+    #print 'end:   ', end
+    #print 'd: ', text[start:end].replace('\n',' ').replace('\t',' ')
+    #print 'dataWith: ', dataWithEmpty
+    #print
+    #print 'data:     ', data[lineno]
 
     tokPosRelToSent = []
     count = 0
@@ -131,13 +136,10 @@ def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan,fname=
         else:  # empty string
             count += 1
 
-    #print tokPosRelToSent
-    #print tokPosRelToSent[startTok:endTok+1]
-
     startOfTokRelToText = tokPosRelToSent[startTok][0] + start
     endOfTokRelToText   = tokPosRelToSent[  endTok][1] + start
 
-    #print '---' + self.text[endOfTokRelToText-3:endOfTokRelToText+4] + '---'
+    #print '---' + text[endOfTokRelToText-3:endOfTokRelToText+4] + '---'
 
     #print startOfTokRelToText, '  ', endOfTokRelToText
 

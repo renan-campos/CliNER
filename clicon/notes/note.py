@@ -165,6 +165,72 @@ class Note:
         return [  c[0]  for  c  in  classifications  ]
 
 
+
+    def getNonContiguousSpans(self):
+        """
+        Purpose: Return a list of classification tuples (contains noncontig info)
+
+        How to Use: return value is a list of (concept,lineno,chunk_inds)
+                    *** where chunk_inds is a list of indices of chunks 
+                        that belong in the same noncontiguous span      ***
+        """
+
+        # Create mapping from token indices to chunk indices
+        tok_to_chunk_index_map = []
+        for iobs in self.iob_labels:
+            # One line of chunked phrases
+            line = {}
+            seen_chunks = 0
+
+            # Word-by-word grouping
+            for i,iob in enumerate(iobs):
+                if iob == 'O':
+                    seen_chunks += 1
+                if iob == 'B':
+                    line[i] = seen_chunks
+                    seen_chunks += 1
+
+            tok_to_chunk_index_map.append(line)
+
+
+        # Return value
+        tok_classifications = []
+
+        # Used for converting character offset -> token index
+        self.getTokenizedSentences()
+        line_inds = self.derived_note.getLineIndices()
+        data = self.derived_note.data
+        text = self.derived_note.text
+
+        # For each concept instance
+        for classification in self.derived_note.getClassificationTuples():
+            concept,char_spans = classification
+
+            # Each span (could be noncontiguous span)
+            tok_spans = []
+            first_lineno = None
+            for span in char_spans:
+                # character offset span --> lineno and list of token index spans
+                lineno,tokspan = lineno_and_tokspan(line_inds, data, text, span)
+                tok_spans.append(tokspan)
+
+                # Ensure all noncontig spans are together on one line
+                if first_lineno == None: first_lineno = lineno
+                assert (lineno == first_lineno)
+
+            # list of token index spans --> list of chunk indices
+            chunk_inds = []
+            for span in tok_spans:
+                ind = tok_to_chunk_index_map[lineno][span[0]]
+                chunk_inds.append(ind)
+
+            tok_classifications.append( (concept, lineno, chunk_inds)  )
+
+
+        return tok_classifications
+
+
+
     def getIOBLabels(self):
         """
         Purpose: return a list of list of IOB labels
@@ -221,7 +287,7 @@ class Note:
         """
 
         # Memoized?
-        if self.text_chunks: return self.text_chunks()
+        if self.text_chunks: return self.text_chunks
 
         # Line-by-line chunking
         text = self.getTokenizedSentences()
@@ -353,9 +419,10 @@ class Note:
                 lineno,tokspan = lineno_and_tokspan(line_inds, data, text, span)
                 start,end = tokspan
 
-            self.concepts[lineno][start] = concept
-            for i in range(start, end):
-                self.concepts[lineno][i+1] = concept
+                # FIXME , TODO - Should these 3 lines be inside the for loop?
+                self.concepts[lineno][start] = concept
+                for i in range(start, end):
+                    self.concepts[lineno][i+1] = concept
 
         return self.concepts
 

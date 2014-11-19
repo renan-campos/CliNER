@@ -62,9 +62,16 @@ def main():
         action = "store_true"
     )
 
+    parser.add_argument("-third",
+        dest = "third",
+        help = "A flag indicating whether to have third/clustering pass",
+        action = "store_true"
+    )
+
     # Parse the command line arguments
     args = parser.parse_args()
     is_crf = not args.nocrf
+    third = args.third
 
 
     # A list of text    file paths
@@ -100,11 +107,24 @@ def main():
 
 
     # Train the model
-    train(training_list, args.model, format, is_crf=is_crf, grid=args.grid)
+    train(training_list, args.model, format, is_crf=is_crf, grid=args.grid, third=third)
 
 
 
-def train(training_list, model_path, format, is_crf=True, grid=False):
+def train(training_list, model_path, format, is_crf=True, grid=False, third=False):
+
+    """
+    train()
+
+    Purpose: Train a model for given clinical data.
+
+    @param training_list  list of (txt,con) file path tuples (training instances)
+    @param model_path     string filename of where to pickle model object
+    @param format         concept file data format (ex. i2b2, semeval)
+    @param is_crf         whether first pass should use CRF classifier
+    @param grid           whether second pass should perform grid search
+    @param third          whether to perform third/clustering pass
+    """
 
     # Read the data into a Note object
     notes = []
@@ -125,13 +145,17 @@ def train(training_list, model_path, format, is_crf=True, grid=False):
 
 
     # Train the model using the Note's data
-    model.train(notes, grid)
+    model.train(notes, grid, third)
 
 
     # Pickle dump
     print 'pickle dump'
     with open(model_path, "wb") as m_file:
         pickle.dump(model, m_file)
+
+
+    # return trained model
+    return model
 
 
 

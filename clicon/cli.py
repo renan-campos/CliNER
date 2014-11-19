@@ -31,15 +31,17 @@ supported_formats_help = "Data format ( " + ' | '.join(Note.supportedFormats()) 
 
 # Train
 @clicon.command()
-@click.option('--annotations'   , help='Concept files for training.'  )
-@click.option('--model'         , help='Model output by train.'       )
-@click.option('--format'        , help=supported_formats_help         )
-@click.option('--grid/--no-grid', help='Flag that enables grid search', 
+@click.option('--annotations'     , help='Concept files for training.'  )
+@click.option('--model'           , help='Model output by train.'       )
+@click.option('--format'          , help=supported_formats_help         )
+@click.option('--grid/--no-grid'  , help='Flag that enables grid search', 
               default=False)
-@click.option('--crf/--no-crf'  , help='Flag that enables crfsuite'   ,
+@click.option('--crf/--no-crf'    , help='Flag that enables crfsuite'   ,
               default=True)
+@click.option('--third/--no-third', help='Flag that enables third pass' ,
+              default=False)
 @click.argument('input')
-def train(annotations, model, format, grid, crf, input):
+def train(annotations, model, format, grid, crf, third, input):
 
     # training data needs concept file annotations
     if not annotations:
@@ -69,6 +71,8 @@ def train(annotations, model, format, grid, crf, input):
         cmd += ['-g']
     if not crf:
         cmd += ['-no-crf']
+    if third:
+        cmd += ['-third']
 
     # Execute train.py
     subprocess.call(cmd)
@@ -81,8 +85,10 @@ def train(annotations, model, format, grid, crf, input):
 @click.option('--out'   , help='The directory to write the output')
 @click.option('--model' , help='Model used to predict on files'   )
 @click.option('--format', help=supported_formats_help             )
+@click.option('--third/--no-third', help='Flag that enables third pass' ,
+              default=False)
 @click.argument('input')
-def predict(model, out, format, input):
+def predict(model, out, format, third, input):
 
     # Base directory
     BASE_DIR = os.environ.get('CLICON_DIR')
@@ -102,6 +108,8 @@ def predict(model, out, format, input):
         cmd += ['-m',  model]
     if format:
         cmd += ['-f', format]
+    if third:
+        cmd += ['-third']
 
     # Execute train.py
     subprocess.call(cmd)

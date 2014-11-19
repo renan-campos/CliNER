@@ -159,33 +159,33 @@ class Note_semeval(AbstractNote):
            
                 gold.append(s)
 
-                #print "\nsentence:-------------------------------"
-                #print s
+                #b = True#'residual' in s
+                #if b: print "\nsentence:-------------------------------"
 
-                #print s
+                #if b: print s
 
                 # Store data
                 toks = self.word_tokenizer.tokenize(s)
 
-                #print "\ntokenized sentence:---------------------------------"
-                #print toks
+                #if b: print "\ntokenized sentence:----------------------------"
+                #if b: print toks
 
                 self.data.append(toks)
 
                 # Keep track of which indices each line has
                 end = start + len(s)
 
-                #print "\nindices:--------------------------------------------"
-                #print (start, end)
+                #if b: print "\nindices:---------------------------------------"
+                #if b: print (start, end)
 
-                #print "\nusing index on entire txt----------------------------"
-                #print text[start:end]
+                #if b: print "\nusing index on entire txt----------------------"
+                #if b: print '<s>' + text[start:end] + '</s>'
 
-                #print "\nEQUAL?"
-                #print text[start:end] == s
+                # EQUAL?
+                assert( text[start:end] == s ), 'data and text must agree'
 
                 self.line_inds.append( (start,end) )
-                start = end + 1
+                start = end
 
                 # Skip ahead to next non-whitespace
                 while (start < len(text)) and text[start].isspace(): start += 1
@@ -202,14 +202,9 @@ class Note_semeval(AbstractNote):
                 print 'Xx' * 20
             '''
 
-        #lno,span = lineno_and_tokspan((2329, 2351))
-        #lno,span = lineno_and_tokspan((1327, 1344))
-        #print self.data[lno][span[0]:span[1]+1]
-
 
         # If an accompanying concept file was specified, read it
         if con:
-            offset_classifications = []
             classifications = []
             with open(con) as f:
                 for line in f:
@@ -233,11 +228,6 @@ class Note_semeval(AbstractNote):
                     # Everything is a Disease_Disorder
                     concept = 'problem'
 
-                    # FIXME - For now, treat non-contiguous spans as separate
-                    for span in span_inds:
-                        #l,(start,end) = lineno_and_tokspan(span)
-                        # Add the classification to the Note object
-                        offset_classifications.append((concept,span[0],span[1]))
                     classifications.append( (concept, span_inds) )
 
             # Safe guard against concept file having duplicate entries
@@ -261,15 +251,16 @@ class Note_semeval(AbstractNote):
                 text = self.text
                 
                 # FIXME - Assumes that token-level does not have noncontig
-                concept = classification[0]
-                lno     = classification[1] - 1
-                start   = classification[2]
-                end     = classification[3]
-                tokspan = start,end
+                concept  = classification[0]
+                lno      = classification[1] - 1
+                tokspans = classification[2]
 
                 # Get character offset span                
-                span = lno_and_tokspan__to__char_span(inds,data,text,lno,tokspan)
-                classifications.append( (concept,span) )
+                spans = []
+                for tokspan in tokspans:
+                    span = lno_and_tokspan__to__char_span(inds,data,text,lno,tokspan)
+                    spans.append(span)
+                classifications.append( (concept,spans) )
 
         elif self.classifications != None:
             classifications = self.classifications
@@ -281,10 +272,9 @@ class Note_semeval(AbstractNote):
 
         for concept,span_inds in classifications:
             retStr += self.fileName + '||%s||CUI-less' % concept
-            # ASSUME: no non-contig
-            #for span in span_inds:
-            #    retStr += '||' + str(span[0]) + "||" +  str(span[1])
-            retStr += '||' + str(span_inds[0]) + "||" +  str(span_inds[1])
+            for span in span_inds:
+                retStr += '||' + str(span[0]) + "||" +  str(span[1])
+            #retStr += '||' + str(span_inds[0]) + "||" +  str(span_inds[1])
             retStr += '\n'
 
         return retStr

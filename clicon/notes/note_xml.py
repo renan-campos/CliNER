@@ -186,9 +186,10 @@ class Note_xml(AbstractNote):
         toks = copy(self.data)
 
         # Order classification tuples so they are accessed right to left
+        # TODO - Should actually check if still works for general noncontig
         # Assumption: sorted() is a stable sort
-        tags = sorted(classifications, key=lambda x:x[2], reverse=True)
-        tags = sorted(tags           , key=lambda x:x[1]              )
+        tags = sorted(classifications, key=lambda x:x[2][0], reverse=True)
+        tags = sorted(tags           , key=lambda x:x[1]                 )
 
         #print toks
         #print ''
@@ -200,8 +201,8 @@ class Note_xml(AbstractNote):
             # Decode classification tuple
             con   = tag[0]
             line  = tag[1] - 1
-            start = tag[2]
-            end   = tag[3]
+            start = tag[2][0][0]
+            end   = tag[2][0][1]
 
             #print tag
             #print 'line:   ', toks[line]
