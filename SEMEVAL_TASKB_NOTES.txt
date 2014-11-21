@@ -1,0 +1,24 @@
+to run cuiLookup.py
+
+metamap and metamap java api must be installed to the path:
+/data1/kwacome/clicon_home/CliCon/clicon/features_dir/cuiLookup/metamapBase
+
+From: http://metamap.nlm.nih.gov/Docs/README_javaapi.html#Downloading,%20Extracting%20and%20Installing%20the%20API%20distribution
+
+"The full MetaMap download and installation is required to use the MetaMap Java API (see \http://metamap.nlm.nih.gov/#Downloads). Also, Java 1.6 SDK or greater is required. (It should work Java 1.5 but it has not been tested with Java 1.5) "
+
+Follow the install instructions for the full MetaMap download and for the java api.
+
+After everything is said and done there should be a single folder within metamapBase called "public_mm"
+
+within cuiLookup/metamapBase/public_mm/bin/
+
+The following commands should be executed:
+
+$ ./skrmedpostctl start
+$ ./mmserver
+
+Then the code for cuiLookup.java must be compiled by running 
+compileCuiLookup.sh
+
+$ bash compileCuiLookup.sh
