@@ -127,11 +127,10 @@ def predict(files, model_path, output_dir, format):
         note.setFileName(os.path.split(txt)[-1])
         output = note.write(labels)
 
-        # for the spans generated obtain concept ids of phrase
-        output = taskB(output, txt)
-
-        # insert conceptIds into output
-        print output        
+        # task B
+        if format == "semeval":
+            # for the spans generated obtain concept ids of phrase
+            output = taskB(output, txt)
 
         # Output the concept predictions
         print '\n\nwriting to: ', out_path
