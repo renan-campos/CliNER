@@ -1,7 +1,7 @@
 to run cuiLookup.py
 
 metamap and metamap java api must be installed to the path:
-/data1/kwacome/clicon_home/CliCon/clicon/features_dir/cuiLookup/metamapBase
+<directory created by git>/clicon/features_dir/cuiLookup/metamapBase
 
 From: http://metamap.nlm.nih.gov/Docs/README_javaapi.html#Downloading,%20Extracting%20and%20Installing%20the%20API%20distribution
 
