@@ -1,16 +1,21 @@
 import subprocess
 import re
-
-from sets import Set
+import os
 
 def getConceptId(phrase):
     """
     performs a cui lookup on a phrase using metamap java api.
     """
 
-    # TODO: change this for when put into cliner
-    metaMapApiJarPath  = ":/src/javaapi/dist/MetaMapApi.jar"
-    prologBeansJarPath = ":/src/javaapi/dist/prologbeans.jar"
+    baseDirPath = os.environ["CLICON_DIR"]
+
+    if baseDirPath is None:
+       raise Exception("CLICON_DIR not defined")
+
+    os.chdir(baseDirPath + "/clicon/features_dir/cuiLookup")
+
+    metaMapApiJarPath  = ":metamapBase/public_mm/src/javaapi/dist/MetaMapApi.jar"
+    prologBeansJarPath = ":metamapBase/public_mm/src/javaapi/dist/prologbeans.jar"
 
     # jar paths used for -cp. used to linked dependencies to program
     cpArgs =  ".{0}{1}".format(metaMapApiJarPath,
@@ -62,7 +67,7 @@ def extractConceptIdsFromStdout(stdout):
             elif results["concept_ids"] is None:
 
                 # if there is a concept id but nothing is already assigned to the phrase then assign a list.
-                results["concept_ids"] = Set()
+                results["concept_ids"] = set()
 
                 results["concept_ids"].add(cui)
 

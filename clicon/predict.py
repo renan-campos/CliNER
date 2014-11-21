@@ -16,10 +16,20 @@ import sys
 import glob
 import argparse
 import helper
+import re
 
 from model import Model
 from notes.note import Note
 
+from features_dir.cuiLookup.cuiLookup import getConceptId
+
+import itertools
+
+def pairwise(iterable):
+    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    a, b = itertools.tee(iterable)
+    next(b, None)
+    return itertools.izip(a, b)
 
 def main():
 
@@ -108,7 +118,6 @@ def predict(files, model_path, output_dir, format):
         # Predict concept labels
         labels = model.predict(note)
 
-
         # Output file
         extension = note.getExtension()
         fname = os.path.splitext(os.path.basename(txt))[0] + '.' + extension
@@ -118,7 +127,11 @@ def predict(files, model_path, output_dir, format):
         note.setFileName(os.path.split(txt)[-1])
         output = note.write(labels)
 
-        #print output
+        # for the spans generated obtain concept ids of phrase
+        output = taskB(output, txt)
+
+        # insert conceptIds into output
+        print output        
 
         # Output the concept predictions
         print '\n\nwriting to: ', out_path
@@ -126,8 +139,79 @@ def predict(files, model_path, output_dir, format):
             print >>f, output
         print
 
+def taskB(outputArg, txtFile):
+    """
+    obtains concept ids for each phrase indicated by the span generated from prediction
+    """
 
+    txtFile = open(txtFile, "r")
 
+    txtFile = txtFile.read()
+
+    # remove end new line since it is junk.
+    output = outputArg[:-1]
+
+    # turn output into a list of strings.
+    output = output.split('\n')
+
+    cuisToInsert = []
+
+    for index, line in enumerate(output):
+
+        line = line.split("||")
+
+        phrase = ""
+
+        # get the phrase  for each span
+        for span in pairwise(line[3:]):
+
+            string = txtFile[int(span[0]):int(span[1])+1]
+
+            phrase += string
+
+        # concept Id of phrase
+        conceptId = obtainConceptId(phrase)
+
+        cuiToInsert = {}
+
+        cuiToInsert["index"] = index
+        cuiToInsert["cui"] = conceptId
+ 
+        cuisToInsert.append(cuiToInsert)
+
+    for cuiToInsert in cuisToInsert:
+        # replace CUI-less with concept id obtained
+        string = output[cuiToInsert["index"]]
+
+        string = re.sub("CUI-less", cuiToInsert["cui"], string)
+
+        output[cuiToInsert["index"]] = string
+
+    # gets end new line back when hoining
+    output += [""]
+
+    resultingOutput = "\n".join(output)
+
+    return resultingOutput
+
+def obtainConceptId(phrase):
+    """
+    calls the function obtainConceptId from the python module cuiLookup
+    and obtains concept id of the most frequent concept id.
+
+    TBD: get concept with highest frequency
+    """
+
+    # sets are not indexable so convert for indexing.
+    # getConceptId returns dictionary of the form {"text":"text argument", "concept_ids":Set([..])}
+    conceptIds = getConceptId(phrase)["concept_ids"]
+
+    if conceptIds is None:
+        conceptId = "CUI-less"
+    else:
+        conceptId = list(conceptIds)[0]
+
+    return conceptId
 
 if __name__ == '__main__':
     main()
