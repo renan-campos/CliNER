@@ -24,6 +24,7 @@ from notes.note import Note
 from features_dir.cuiLookup.cuiLookup import getConceptId
 
 import itertools
+import cPickle as pickle
 
 def pairwise(iterable):
     "s -> (s0,s1), (s1,s2), (s2, s3), ..."
@@ -197,8 +198,6 @@ def obtainConceptId(phrase):
     """
     calls the function obtainConceptId from the python module cuiLookup
     and obtains concept id of the most frequent concept id.
-
-    TBD: get concept with highest frequency
     """
 
     # sets are not indexable so convert for indexing.
@@ -208,9 +207,35 @@ def obtainConceptId(phrase):
     if conceptIds is None:
         conceptId = "CUI-less"
     else:
-        conceptId = list(conceptIds)[0]
+
+        # TODO: add more ways of determining correct concept id when given more then one by metamap.
+        conceptId = getMostFrequentCui(list(conceptIds))
 
     return conceptId
+
+def getMostFrequentCui(cuiList):
+    cui_freq = pickle.load(open(os.getenv('CLICON_DIR')+"/cui_freq/cui_freq","rb"))
+
+    cuiWithHighestFreq = None
+
+    for cui in cuiList:
+
+        if cui in cui_freq:
+
+            # sets an initial cui
+            if cuiWithHighestFreq is None:
+                cuiWithHighestFreq = cui
+
+            # assign new highest
+            elif cui_freq[cui] > cui_freq[cuiWithHighestFreq]:
+                cuiWithHighestFreq = cui 
+
+    # at this point we have not found any concept ids with a frequency greater than 0.
+    # good chance it is CUI-less
+    if cuiWithHighestFreq is None:
+        cuiWithHighestFreq = "CUI-less"
+
+    return cuiWithHighestFreq
 
 if __name__ == '__main__':
     main()

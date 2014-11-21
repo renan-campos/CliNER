@@ -66,9 +66,11 @@ def main():
     args = parser.parse_args()
     is_crf = not args.nocrf
 
-
     # A list of text    file paths
     # A list of concept file paths
+#    txt_files = glob.glob(args.txt + "/*")
+#    con_files = glob.glob(args.con + "/*")
+
     txt_files = glob.glob(args.txt)
     con_files = glob.glob(args.con)
 
@@ -114,6 +116,10 @@ def train(training_list, model_path, format, is_crf=True, grid=False):
         notes.append(note_tmp)        # Add the Note to the list
 
 
+    if format == "semeval":
+        calcFreqOfCuis(training_list)
+
+
     # file names
     if not notes:
         print 'Error: Cannot train on 0 files. Terminating train.'
@@ -133,7 +139,55 @@ def train(training_list, model_path, format, is_crf=True, grid=False):
     with open(model_path, "wb") as m_file:
         pickle.dump(model, m_file)
 
+# used for task B. stores the number of occurences of a concept id
+def calcFreqOfCuis(training_list):
 
+    cui_freq = {}
+
+    total_cui_count = 0
+
+    for _, con in training_list:
+        con_file = open(con, "r")
+        con_text = con_file.read()
+        con_file.close()
+
+        con_text = con_text.split('\n')
+
+        print con_text
+
+        while "" in con_text:
+            con_text.remove("")
+
+        for line in con_text:
+
+            # get cui
+            cui = line.split('||')[2]
+
+            # TODO: I do not consider CUI-Less. since if metamap returns no cui then there is only one choice.
+            # for now frequency of a cui is used when metamap returns multiple concept ids.
+            #            -potential frequencies to record:
+            #                          -record the frequency of a phrase having a certain cui?
+            if cui == "CUI-less":
+                pass
+
+            elif cui in cui_freq:
+                cui_freq[cui] += 1
+                total_cui_count += 1
+
+            else:
+                cui_freq[cui] = 1
+                total_cui_count += 1
+
+    # get frequencies
+    for cui in cui_freq:
+        cui_freq[cui] = (cui_freq[cui] / total_cui_count)
+
+    # Pickle dump
+    print 'pickle dump concept id frequencies'
+    with open(os.getenv('CLICON_DIR')+"/cui_freq/cui_freq", "wb") as freq_file:
+        pickle.dump(cui_freq, freq_file)
+
+    return
 
 if __name__ == '__main__':
     main()
