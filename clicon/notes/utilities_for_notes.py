@@ -97,11 +97,6 @@ def lineno_and_tokspan(line_inds, data, text, char_span):
 
             #print "USING char_span on text: ", text[char_span[0]:char_span[1]]
             #print "USING tok_span on data[i]", data[i][tok_span[0]], data[i][tok_span[1]]
-            #print "USING char_span on text: ", text[char_span[0]], text[char_span[1]]
-
-            if (i==40) and (tuple(tok_span)==(13,15)):
-                print 'AAAAAAA'
-                exit()
 
             return (i, tuple(tok_span))
 
@@ -153,6 +148,47 @@ def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan,fname=
 
     return startOfTokRelToText,endOfTokRelToText
 
+
+
+
+def span_relationship(s1, s2):
+    if (s1[0] <= s2[0]) and (s1[1] >= s2[1]):
+        return 'subsumes'
+    else: 
+        return None
+
+
+
+def span_stuff(classifs):
+
+    # Sort all concept spans
+    classifs = sorted(classifs, key=lambda s:s[0])
+
+    # Loop until convergence
+
+    newClassifs = []
+
+    for i in range(len(classifs)-1):
+
+        rel = span_relationship(classifs[i], classifs[i+1])
+
+        if rel == 'subsumes':
+            #print i, '  -->  ', classifs[i], classifs[i+1]
+            s1 = classifs[i]
+            s2 = classifs[i+1]
+
+            # Split s1 into leading atom (and leave s2 as second atom)
+            #print s1
+            #print s2
+            #print
+            newSpan = (s1[0], s2[0]-1)
+            newClassifs.append(newSpan)
+        
+        else:
+            newClassifs.append(classifs[i])
+
+    #print newClassifs
+    return newClassifs
 
 
 

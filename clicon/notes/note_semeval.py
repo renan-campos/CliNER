@@ -222,9 +222,6 @@ class Note_semeval(AbstractNote):
                         span = int(fields[i]), int(fields[i+1])
                         span_inds.append( span )
 
-                    #print '\t', concept
-                    #print '\t', span_inds
-
                     # Everything is a Disease_Disorder
                     concept = 'problem'
 
@@ -232,6 +229,27 @@ class Note_semeval(AbstractNote):
 
             # Safe guard against concept file having duplicate entries
             #classifications = list(set(classifications))
+
+            '''
+            # TODO - Atomize spans
+            # Atomize classification spans
+            # ex. "left and right atrial dilitation" from 02136-017465.text
+            classifs = reduce(lambda a,b: a+b,map(lambda t:t[1],classifications))
+            classifs = list(set(classifs))
+            classifs = sorted(classifs, key=lambda s:s[0])
+            print classifs
+
+            from utilities_for_notes import span_stuff
+            span_stuff(classifs)
+
+            # Goal: Split overlaps
+            #print self.text[6111:6134], ' -> <s>'+self.text[6111:6116]+'</s> <s>'+self.text[6117:6134]+'</s>'
+            #print
+            #print self.text[6117:6134]
+
+            #print
+            exit()
+            '''
 
             # Concept file does not guarantee ordering by line number
             self.classifications = sorted(classifications, cmp=concept_cmp)

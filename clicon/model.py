@@ -77,7 +77,7 @@ class Model:
 
         # Train classifier (side effect - saved as object's member variable)
         print 'first pass'
-        self.first_train(data1, Y1, do_grid)
+        #self.first_train(data1, Y1, do_grid)
 
 
 
@@ -97,7 +97,7 @@ class Model:
 
         # Train classifier (side effect - saved as object's member variable)
         print 'second pass'
-        self.second_train(data2, inds, Y2, do_grid)
+        #self.second_train(data2, inds, Y2, do_grid)
 
 
 
@@ -285,7 +285,7 @@ class Model:
 
     def third_train(self, chunks, classifications, inds, do_grid=False):
 
-        # Create more explicit and easy-to-query relationship lookup
+        # Useful for encoding annotations
         # query line number & chunk index to get list of shared chunk indices
         relations = defaultdict(lambda:defaultdict(lambda:[]))
         for concept,lineno,spans in classifications:
@@ -302,26 +302,15 @@ class Model:
         #print inds
 
         print '\textracting  features (pass three)'
+
+        # Create object that is a wrapper for the features
+        feat_obj = features.FeatureWrapper()
+
         # Extract features between pairs of chunks
-        unvectorized_X = []
-        for lineno,indices in enumerate(inds):
-            # Cannot have pairwise relationsips with either 0 or 1 objects
-            if len(indices) < 2: continue
-
-            # Build (n choose 2) booleans
-            features = []
-            for i in range(len(indices)):
-                for j in range(i+1,len(indices)):
-                    #print indices[i], indices[j]
-                    feats = {i:1,j:1}
-
-                    # Positive or negative result for training
-                    features.append(feats)
-
-            unvectorized_X += features
+        unvectorized_X = feat_obj.extract_third_pass_features(chunks, inds)
 
 
-        print '\tvectorizing features (pass one)'
+        print '\tvectorizing features (pass three)'
 
         # Construct boolean vector of annotations
         Y = []
@@ -347,9 +336,10 @@ class Model:
         X = self.third_vec.fit_transform(unvectorized_X)
 
 
-        print '\ttraining classifier  (pass one)'
+        print '\ttraining classifier  (pass three)'
 
         # Train classifier
+        #print Y
         self.third_clf = sci.train(X, Y, do_grid)
 
 
@@ -358,7 +348,7 @@ class Model:
     # Model::predict()
     #
     # @param note. A Note object that contains the data
-    def predict(self, note):
+    def predict(self, note, third):
 
 
         ##############
@@ -398,9 +388,9 @@ class Model:
         ##############
 
         # Third pass enabled?
-        if False:
+        if third and self.is_third:
             print 'third pass'
-            clustered = [ (c[0],c[1],[(c[2],c[3])]) for c in classifications ]
+            clustered = self.third_predict(chunks, classifications, inds)
         else:
             # Treat each as its own set of spans (each set containing one tuple)
             clustered = [ (c[0],c[1],[(c[2],c[3])]) for c in classifications ]
@@ -578,6 +568,117 @@ class Model:
         
         # Return classifications
         return classifications
+
+
+
+
+    def third_predict(self, chunks, classifications, inds):
+
+        print '\textracting  features (pass three)'
+
+        # Create object that is a wrapper for the features
+        feat_obj = features.FeatureWrapper()
+
+        # Extract features between pairs of chunks
+        unvectorized_X = feat_obj.extract_third_pass_features(chunks, inds)
+
+
+        print '\tvectorizing features (pass three)'
+
+        # Vectorize features
+        X = self.third_vec.fit_transform(unvectorized_X)
+
+
+
+        print '\tpredicting    labels (pass three)'
+
+        # Predict concept labels
+        predicted_relationships = sci.predict(self.third_clf, X)
+
+
+        # TODO: Create clustered spans using predictions
+        #print predicted_relationships
+
+        classifications_cpy = list(classifications)
+
+        # Stitch SVM output into clustered token span classifications
+        clustered = []
+        for indices in inds:
+
+            # Cannot have pairwise relationsips with either 0 or 1 objects
+            if len(indices) == 0: 
+                continue
+
+            elif len(indices) == 1:
+                # Contiguous span (adjust format to (length-1 list of tok spans)
+                tup = list(classifications_cpy.pop(0))
+                tup = (tup[0],tup[1],[(tup[2],tup[3])])
+                clustered.append(tup)
+
+                #print 'single: ', indices
+                #print tup
+                #print
+
+            else:
+
+                # FIXME - cluster from output
+                #print 'larger: ', indices
+
+                # Number of classifications on the line
+                tups = []
+                for _ in range(len(indices)):
+                    tup = list(classifications_cpy.pop(0))
+                    tup = (tup[0],tup[1],[(tup[2],tup[3])])
+                    tups.append(tup)
+
+                # Pairwise clusters
+                clusters = {}
+
+                # ASSUMPTION: All classifications have same label
+                concept = tups[0][0]   
+                lineno = tups[0][1]
+                spans = map(lambda t:t[2][0], tups)
+
+                # Keep track of non-clustered spans
+                singulars = list(tups)
+
+                #print tups
+                #print spans
+
+                # Not actually the right update (does no clustering)
+
+                # Get all pairwise relationships for the line
+                #pairs = []
+                for i in range(len(indices)):
+                    for j in range(i+1,len(indices)):
+                        pair = predicted_relationships.pop(0)
+                        #pairs.append(pair)
+                        if pair == 1:
+                            #print '\t', indices[i], indices[j]
+                            #print '\t\t', lineno, spans[i], spans[j]
+                            tup = (concept,lineno,[spans[i],spans[j]])
+                            clustered.append(tup)
+
+                            # No longer part of a singular span
+                            if tups[i] in singulars:
+                                #print 'removing: ', tups[i]
+                                singulars.remove(tups[i])
+                            if tups[j] in singulars:
+                                #print 'removing: ', tups[j]
+                                singulars.remove(tups[j])
+
+                clustered += singulars
+
+                #print pairs
+                #print
+
+        #print classifications
+        #print
+        #print clustered
+        #print
+        #exit()
+
+        return clustered
 
 
 

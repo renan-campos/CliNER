@@ -206,6 +206,9 @@ class Note:
         for classification in self.derived_note.getClassificationTuples():
             concept,char_spans = classification
 
+            #print
+            #print char_spans
+
             # Each span (could be noncontiguous span)
             tok_spans = []
             first_lineno = None
@@ -221,6 +224,8 @@ class Note:
             # list of token index spans --> list of chunk indices
             chunk_inds = []
             for span in tok_spans:
+                #print lineno, '\t', span
+                #print tok_to_chunk_index_map[lineno]
                 ind = tok_to_chunk_index_map[lineno][span[0]]
                 chunk_inds.append(ind)
 
@@ -260,6 +265,10 @@ class Note:
                 iobs[lineno][start] = 'B'
                 for i in range(start+1,end+1):
                     iobs[lineno][i] = 'I'
+
+        i = 87
+        #for p in zip(data[i],iobs[i]): print p
+        #exit()
 
         # Memoize for next call
         self.iob_labels = iobs

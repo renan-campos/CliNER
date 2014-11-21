@@ -56,6 +56,12 @@ def main():
       default = None
     )
 
+    parser.add_argument("-third",
+        dest = "third",
+        help = "A flag indicating whether to have third/clustering pass",
+        action = "store_true"
+    )
+
     args = parser.parse_args()
 
 
@@ -63,6 +69,7 @@ def main():
     files = glob.glob(args.input)
     helper.mkpath(args.output)
     format = args.format
+    third = args.third
 
 
     # Tell user if not predicting
@@ -76,11 +83,11 @@ def main():
 
 
     # Predict
-    predict(files, model, args.output, format=format)
+    predict(files, model, args.output, format=format, third=third)
 
 
 
-def predict(files, model, output_dir, format):
+def predict(files, model, output_dir, format, third=False):
 
     # Must specify output format
     if format not in Note.supportedFormats():
@@ -105,7 +112,7 @@ def predict(files, model, output_dir, format):
 
 
         # Predict concept labels
-        labels = model.predict(note)
+        labels = model.predict(note, third)
 
 
         # Output file

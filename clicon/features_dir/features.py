@@ -1,5 +1,5 @@
 ######################################################################
-#  CliCon - clicon_features.py                                       #
+#  CliCon - features.py                                              #
 #                                                                    #
 #  Willie Boag                                      wboag@cs.uml.edu #
 #                                                                    #
@@ -76,3 +76,27 @@ class FeatureWrapper:
         features_list = self.feat_sent.concept_features_for_sentence(sentence,chunk_inds)
         return features_list
 
+
+
+    def extract_third_pass_features(self, chunks, inds):
+
+        unvectorized_X = []
+        for lineno,indices in enumerate(inds):
+
+            '''
+            # Cannot have pairwise relationsips with either 0 or 1 objects
+            if len(indices) < 2: continue
+
+            # Build (n choose 2) booleans
+            features = []
+            for i in range(len(indices)):
+                for j in range(i+1,len(indices)):
+                    feats = {(lineno,i):1,(lineno,j):1}
+
+                    # Positive or negative result for training
+                    features.append(feats)
+            '''
+            features = self.feat_sent.third_pass_features(chunks[lineno],indices)
+            unvectorized_X += features
+
+        return unvectorized_X

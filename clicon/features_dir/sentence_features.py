@@ -374,3 +374,42 @@ class SentenceFeatures:
         return features_list
 
 
+
+
+    def third_pass_features(self, line, indices):
+
+        # Cannot have pairwise relationsips with either 0 or 1 objects
+        if len(indices) < 2: 
+            return {}
+
+        features_list = []
+
+        # Build (n choose 2) booleans
+        for i in range(len(indices)):
+            for j in range(i+1,len(indices)):
+
+                # Features of pair relationship
+                feats = {}
+
+                # Feature: Left Unigrams
+                for tok in line[i].split():
+                    tok = tok.lower()
+                    feats[('left_unigram' ,tok)] = 1
+
+                # Feature: Right Unigrams
+                for tok in line[j].split():
+                    tok = tok.lower()
+                    feats[('right_unigram',tok)] = 1
+
+                # Feature: Unigrams between spans
+                for tok in ' '.join(line[i+1:j]).split():
+                    tok = tok.lower()
+                    feats[('inner_unigram',tok)] = 1
+
+                # Feature: Number of chunks between spans
+                feats[('span_dist',None)] = j - i
+
+                # Add pair features to list of data points
+                features_list.append(feats)
+
+        return features_list
