@@ -137,9 +137,50 @@ def umls_semantic_type_sentence( cache , sentence ):
     mappings = [ span2concept(span) for span in longestSpans ]
     return mappings
 
+def abr_lookup( cache, word):
+    """ get expansions of an abbreviation """
+    if cache.has_key( word + "--abrs"):
+        abbreviations = cache.get_map( word + "--abrs")
+    else:
+        abbreviations = interface_umls.abr_lookup(word)
 
+        if abbreviations != []:
 
-# Get the semantic types for a given word
+            # the lookup returns a list of tuples so now it will be converted to a list of strings
+            abbreviations =  [tuple[0] for tuple in abbreviations]
+
+        cache.add_map( word + "--abrs", abbreviations)
+    return abbreviations
+
+def get_cuis_for_abr(cache, word):
+    """ gets cui for each possible expansion of abbreviation """
+    if cache.has_key( word + "--cuis_of_abr"):
+        cuis_of_abr = cache.get_map( word + "--cuis_of_abr" )
+    else:
+        cuis_of_abr = {}
+        for phrase in abr_lookup(cache, word):
+            cuis_of_abr[phrase] = get_cui(cache, phrase)
+
+        cache.add_map( word + "cuis_of_abr", cuis_of_abr )
+
+    return cuis_of_abr
+
+def get_tui( cache, cuiStr ):
+    """ get tui of a cui """
+    if cache.has_key( cuiStr ):
+        tui = cache.get_map( cuiStr )
+    else:
+        # list of singleton tuples
+        tui = interface_umls.tui_lookup(cuiStr)
+
+        # change to list of strings
+        tui = [semanticType[0] for semanticType in tui]
+
+        cache.add_map(cuiStr, tui)
+
+    return tui
+
+# Get the umls concept id for a given word
 def get_cui( cache , word ):
 
     # If already in cache

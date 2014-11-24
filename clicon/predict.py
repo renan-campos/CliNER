@@ -17,11 +17,19 @@ import glob
 import argparse
 import helper
 import re
+import string
 
 from model import Model
 from notes.note import Note
 
 from features_dir.cuiLookup.cuiLookup import getConceptId
+from features_dir.umls_dir.interpret_umls import get_tui
+from features_dir.umls_dir.interpret_umls import get_cui
+from features_dir.umls_dir.interpret_umls import get_cuis_for_abr
+
+sys.path.append((os.environ["CLICON_DIR"] + "/clicon/features_dir/umls_dir"))
+
+from umls_cache import UmlsCache
 
 import itertools
 import cPickle as pickle
@@ -67,11 +75,28 @@ def main():
       default = None
     )
 
+#    cache = UmlsCache()
+
+#    print "testing concept id lookup"
+
+#    print get_cui(cache, "blood")
+#    print get_cui(cache, "somnolent")
+#    print get_cui(cache, "hernia")
+#    print get_cui(cache, "hydro")
+#    print get_cui(cache, "peumonia")
+
+    #testConceptLookup()
+
+#    return
+
     args = parser.parse_args()
 
 
     # Parse arguments
-    files = glob.glob(args.input)
+    files = glob.glob(args.input + "/*")
+
+    print files
+
     helper.mkpath(args.output)
     format = args.format
 
@@ -139,6 +164,73 @@ def predict(files, model_path, output_dir, format):
             print >>f, output
         print
 
+def testConceptLookup():
+    """
+    test how well concept id lookup performs
+    """
+    
+
+    pipeFilePaths = glob.glob("/data1/kwacome/clicon_home/test/train/pipe/*")
+
+    for pipeFilePath in pipeFilePaths:
+
+        print pipeFilePath
+
+        textFilePath = re.sub(r"\.pipe", ".text", pipeFilePath)
+        textFilePath = re.sub(r"(?<=/)pipe", "text", textFilePath)
+
+        textFile = open(textFilePath, "r")
+        textFileTxt = textFile.read()
+        textFile.close()
+
+        pipeFile = open(pipeFilePath, "r")
+        pipeFileTxt = pipeFile.read()
+        pipeFile.close()
+
+        linesInPipeFileTxt = pipeFileTxt[:-1].split('\n')
+        
+        cuis = []
+
+        newPipeText = []
+
+        for line in linesInPipeFileTxt:
+            line = line.split('||')
+
+            phrase = ""
+
+            # get the phrase  for each span
+            for span in pairwise(line[3:]):
+
+                string = textFileTxt[int(span[0]):int(span[1])+1]
+
+                phrase += string
+
+            cui = obtainConceptId(phrase)
+
+            if cui != line[2]:
+                print "\n"
+                print "gold standard cui: "
+                print line[2]
+
+                print "cui found: "
+                print cui
+
+                print "phrase: "
+                print phrase
+                print "\n"
+
+            line[2] = cui
+
+            newPipeText.append("||".join(line))
+
+        newPipeText += [""]
+
+        newPipeText = "\n".join(newPipeText)
+            
+        pipeFile = open(pipeFilePath, "wb")
+        pipeFile.write(newPipeText)
+        pipeFile.close()
+    
 def taskB(outputArg, txtFile):
     """
     obtains concept ids for each phrase indicated by the span generated from prediction
@@ -198,6 +290,10 @@ def obtainConceptId(phrase):
     """
     calls the function obtainConceptId from the python module cuiLookup
     and obtains concept id of the most frequent concept id.
+
+    if CUI-less is returned and the phrase is less than 4 characters then search
+    for the cuis of all possible expansions of that abbreviation and then filter down
+    to a list of specified semantic types.
     """
 
     # sets are not indexable so convert for indexing.
@@ -205,13 +301,76 @@ def obtainConceptId(phrase):
     conceptIds = getConceptId(phrase)["concept_ids"]
 
     if conceptIds is None:
+        
         conceptId = "CUI-less"
-    else:
 
-        # TODO: add more ways of determining correct concept id when given more then one by metamap.
+    else:
+ 
         conceptId = getMostFrequentCui(list(conceptIds))
 
+    # perform some extra processing if no cui is found
+    if conceptId == "CUI-less":
+
+        # remove any non alpha numeric characters from string then search
+
+        abr = ""
+        for char in phrase:
+            if char.isalnum() is True:
+                abr += char
+
+        if len(abr) < 4:
+            cuis = getCuisForAbr(abr)
+
+            conceptId = getMostFrequentCui(cuis)
+
     return conceptId
+
+def getCuisForAbr(phrase, filter=["T020", # acquired abnormality
+                                  "T190", # Anatomical Abnormality
+                                  "T049", # Cell or Molecular Dysfunction
+                                  "T019", # Congenital Abnormality
+                                  "T047", # Disease or Syndrome
+                                  "T050", # Experimental Model of Disease
+                                  "T033", # Finding
+                                  "T037", # Injury or Poisoning
+                                  "T048", # Mental or Behavioral Dysfunction
+                                  "T191", # Neoplastic Process
+                                  "T046", # Pathologic Function
+                                  "T184"]): # Sign or Symptom
+    """
+    get cuis for every possible possible abbreviation expansion and filters depending on semantic type
+
+    semantic type: default semantic type is Disorder.
+
+
+    To define your own filte go to:
+
+    page 3:
+
+    http://semanticnetwork.nlm.nih.gov/SemGroups/Papers/2003-medinfo-atm.pdf
+
+    look up categories and semantic types and get the tui from:
+
+    http://metamap.nlm.nih.gov/Docs/SemanticTypes_2013AA.txt
+
+    """
+
+    cache = UmlsCache()
+
+    phrases = get_cuis_for_abr(cache, phrase)
+
+    results = set()
+
+    # filter cuis to only those in that have a tui in the filter.
+
+    # todo: make more efficient
+    for phrase in phrases:
+        for cui in phrases[phrase]:
+            for tui in get_tui(cache, cui):
+                if tui in filter:
+                    results.add(cui)
+    
+    return list(results)
 
 def getMostFrequentCui(cuiList):
     cui_freq = pickle.load(open(os.getenv('CLICON_DIR')+"/cui_freq/cui_freq","rb"))

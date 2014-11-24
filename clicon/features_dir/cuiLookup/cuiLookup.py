@@ -1,11 +1,19 @@
 import subprocess
 import re
 import os
+import imp
+import sys
+
+sys.path.append((os.environ["CLICON_DIR"] + "/clicon/features_dir/umls_dir"))
+
+from umls_cache import UmlsCache
 
 def getConceptId(phrase):
     """
     performs a cui lookup on a phrase using metamap java api.
     """
+
+    cache = UmlsCache()
 
     baseDirPath = os.environ["CLICON_DIR"]
 
@@ -23,11 +31,17 @@ def getConceptId(phrase):
     # the compiled java program to execute
     progArg = "gov.nih.nlm.nls.metamap.cuiLookup"
 
-    # get resulting output of lookup
-    stdout = subprocess.check_output(["java", "-cp", cpArgs, progArg, phrase])
+    if cache.has_key(phrase + "--metamap"):
+        result = cache.get_map(phrase + "--metamap")
+    else:
 
-    # dictionary
-    result = extractConceptIdsFromStdout(stdout)
+        # get resulting output of lookup
+        stdout = subprocess.check_output(["java", "-cp", cpArgs, progArg, phrase])
+
+        # dictionary
+        result = extractConceptIdsFromStdout(stdout)
+
+        cache.add_map(phrase + "--metamap", result)
 
     return result
 

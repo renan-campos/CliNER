@@ -74,6 +74,21 @@ def cui_lookup( string ):
     except sqlite3.ProgrammingError, e:
         return []
 
+def abr_lookup( string ):
+    """ searches for an abbreviation and returns possible expansions for that abbreviation"""
+    try:
+        c.execute( "SELECT str FROM LRABR WHERE abr = ?;", (string,))
+        return c.fetchall()
+    except sqlite3.ProgrammingError, e:
+        return []
+
+def tui_lookup( string ):
+    """ takes in a concept id string (ex: C00342143) and returns the TUI of that string which represents the semantic type is belongs to """
+    try:
+        c.execute( "SELECT tui FROM MRSTY WHERE cui = ?;", (string,))
+        return c.fetchall()
+    except sqlite3.ProgrammingError, e:
+        return []
 
 def concept_exists(string):
     """ Fast query for set membership in trie """
