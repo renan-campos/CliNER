@@ -22,3 +22,11 @@ Then the code for cuiLookup.java must be compiled by running
 compileCuiLookup.sh
 
 $ bash compileCuiLookup.sh
+
+Other dependencies:
+
+lvg norm.
+    -extract contents of lvg tar ball to the folder lvg at the path clicon/normalization/lvg/lvg
+    -follow install instructions
+pyenchant.
+    -pip install pyenchant.
