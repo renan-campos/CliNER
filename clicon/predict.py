@@ -22,10 +22,7 @@ import string
 from model import Model
 from notes.note import Note
 
-from features_dir.cuiLookup.cuiLookup import getConceptId
-from features_dir.umls_dir.interpret_umls import get_tui
-from features_dir.umls_dir.interpret_umls import get_cui
-from features_dir.umls_dir.interpret_umls import get_cuis_for_abr
+from features_dir.umls_dir.interpret_umls import obtain_concept_id
 
 sys.path.append((os.environ["CLICON_DIR"] + "/clicon/features_dir/umls_dir"))
 
@@ -75,19 +72,13 @@ def main():
       default = None
     )
 
-#    cache = UmlsCache()
+    cache = UmlsCache()
 
-#    print "testing concept id lookup"
+    print "testing concept id lookup"
 
-#    print get_cui(cache, "blood")
-#    print get_cui(cache, "somnolent")
-#    print get_cui(cache, "hernia")
-#    print get_cui(cache, "hydro")
-#    print get_cui(cache, "peumonia")
+    testConceptLookup()
 
-    #testConceptLookup()
-
-#    return
+    return
 
     args = parser.parse_args()
 
@@ -167,13 +158,30 @@ def predict(files, model_path, output_dir, format):
 def testConceptLookup():
     """
     test how well concept id lookup performs
+
+    NOTE: can be deleted.
     """
-    
+
+    cache = UmlsCache()    
+
+    filter = ["T020", # acquired abnormality
+                                         "T190", # Anatomical Abnormality
+                                         "T049", # Cell or Molecular Dysfunction
+                                         "T019", # Congenital Abnormality
+                                         "T047", # Disease or Syndrome
+                                         "T050", # Experimental Model of Disease
+                                         "T033", # Finding
+                                         "T037", # Injury or Poisoning
+                                         "T048", # Mental or Behavioral Dysfunction
+                                         "T191", # Neoplastic Process
+                                         "T046", # Pathologic Function
+                                         "T184"]
 
     pipeFilePaths = glob.glob("/data1/kwacome/clicon_home/test/train/pipe/*")
 
-    for pipeFilePath in pipeFilePaths:
+    for fileNum, pipeFilePath in enumerate(pipeFilePaths):
 
+        print fileNum
         print pipeFilePath
 
         textFilePath = re.sub(r"\.pipe", ".text", pipeFilePath)
@@ -205,7 +213,7 @@ def testConceptLookup():
 
                 phrase += string
 
-            cui = obtainConceptId(phrase)
+            cui = obtain_concept_id(cache, phrase, filter)
 
             if cui != line[2]:
                 print "\n"
@@ -236,6 +244,21 @@ def taskB(outputArg, txtFile):
     obtains concept ids for each phrase indicated by the span generated from prediction
     """
 
+    cache = UmlsCache()
+
+    filter = ["T020", # acquired abnormality
+              "T190", # Anatomical Abnormality
+              "T049", # Cell or Molecular Dysfunction
+              "T019", # Congenital Abnormality
+              "T047", # Disease or Syndrome
+              "T050", # Experimental Model of Disease
+              "T033", # Finding
+              "T037", # Injury or Poisoning
+              "T048", # Mental or Behavioral Dysfunction
+              "T191", # Neoplastic Process
+              "T046", # Pathologic Function
+              "T184"]
+
     txtFile = open(txtFile, "r")
 
     txtFile = txtFile.read()
@@ -262,7 +285,7 @@ def taskB(outputArg, txtFile):
             phrase += string
 
         # concept Id of phrase
-        conceptId = obtainConceptId(phrase)
+        conceptId = obtain_concept_id(cache, phrase, filter)
 
         cuiToInsert = {}
 
@@ -285,116 +308,6 @@ def taskB(outputArg, txtFile):
     resultingOutput = "\n".join(output)
 
     return resultingOutput
-
-def obtainConceptId(phrase):
-    """
-    calls the function obtainConceptId from the python module cuiLookup
-    and obtains concept id of the most frequent concept id.
-
-    if CUI-less is returned and the phrase is less than 4 characters then search
-    for the cuis of all possible expansions of that abbreviation and then filter down
-    to a list of specified semantic types.
-    """
-
-    # sets are not indexable so convert for indexing.
-    # getConceptId returns dictionary of the form {"text":"text argument", "concept_ids":Set([..])}
-    conceptIds = getConceptId(phrase)["concept_ids"]
-
-    if conceptIds is None:
-        
-        conceptId = "CUI-less"
-
-    else:
- 
-        conceptId = getMostFrequentCui(list(conceptIds))
-
-    # perform some extra processing if no cui is found
-    if conceptId == "CUI-less":
-
-        # remove any non alpha numeric characters from string then search
-
-        abr = ""
-        for char in phrase:
-            if char.isalnum() is True:
-                abr += char
-
-        if len(abr) < 4:
-            cuis = getCuisForAbr(abr)
-
-            conceptId = getMostFrequentCui(cuis)
-
-    return conceptId
-
-def getCuisForAbr(phrase, filter=["T020", # acquired abnormality
-                                  "T190", # Anatomical Abnormality
-                                  "T049", # Cell or Molecular Dysfunction
-                                  "T019", # Congenital Abnormality
-                                  "T047", # Disease or Syndrome
-                                  "T050", # Experimental Model of Disease
-                                  "T033", # Finding
-                                  "T037", # Injury or Poisoning
-                                  "T048", # Mental or Behavioral Dysfunction
-                                  "T191", # Neoplastic Process
-                                  "T046", # Pathologic Function
-                                  "T184"]): # Sign or Symptom
-    """
-    get cuis for every possible possible abbreviation expansion and filters depending on semantic type
-
-    semantic type: default semantic type is Disorder.
-
-
-    To define your own filte go to:
-
-    page 3:
-
-    http://semanticnetwork.nlm.nih.gov/SemGroups/Papers/2003-medinfo-atm.pdf
-
-    look up categories and semantic types and get the tui from:
-
-    http://metamap.nlm.nih.gov/Docs/SemanticTypes_2013AA.txt
-
-    """
-
-    cache = UmlsCache()
-
-    phrases = get_cuis_for_abr(cache, phrase)
-
-    results = set()
-
-    # filter cuis to only those in that have a tui in the filter.
-
-    # todo: make more efficient
-    for phrase in phrases:
-        for cui in phrases[phrase]:
-            for tui in get_tui(cache, cui):
-                if tui in filter:
-                    results.add(cui)
-    
-    return list(results)
-
-def getMostFrequentCui(cuiList):
-    cui_freq = pickle.load(open(os.getenv('CLICON_DIR')+"/cui_freq/cui_freq","rb"))
-
-    cuiWithHighestFreq = None
-
-    for cui in cuiList:
-
-        if cui in cui_freq:
-
-            # sets an initial cui
-            if cuiWithHighestFreq is None:
-                cuiWithHighestFreq = cui
-
-            # assign new highest
-            elif cui_freq[cui] > cui_freq[cuiWithHighestFreq]:
-                cuiWithHighestFreq = cui 
-
-    # at this point we have not found any concept ids with a frequency greater than 0.
-    # good chance it is CUI-less
-    if cuiWithHighestFreq is None:
-        cuiWithHighestFreq = "CUI-less"
-
-    return cuiWithHighestFreq
 
 if __name__ == '__main__':
     main()

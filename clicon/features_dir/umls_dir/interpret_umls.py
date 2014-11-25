@@ -1,6 +1,15 @@
+import os
+import sys
 import cPickle as pickle
 import interface_umls
 
+sys.path.append((os.environ["CLICON_DIR"] + "/clicon/normalization/lvg"))
+sys.path.append((os.environ["CLICON_DIR"] + "/clicon/normalization/spellCheck"))
+sys.path.append((os.environ["CLICON_DIR"] + "/clicon/features_dir/cuiLookup"))
+
+from lvgNorm import lvgNormalize
+from spellChecker import spellCheck
+from cuiLookup import getConceptId
 
 def umls_semantic_type_word( umls_string_cache , sentence ):
     # Already cached?
@@ -201,4 +210,157 @@ def get_cui( cache , word ):
         cache.add_map( word + '--cuis', cuis )
 
     return cuis
+
+def get_list_all_possible_cuis_for_abrv(cache, phrase):
+    """
+    get cuis for every possible possible abbreviation expansion.
+
+    To define your own filter go to:
+
+    page 3:
+
+    http://semanticnetwork.nlm.nih.gov/SemGroups/Papers/2003-medinfo-atm.pdf
+
+    look up categories and semantic types and get the tui from:
+
+    http://metamap.nlm.nih.gov/Docs/SemanticTypes_2013AA.txt
+
+    """
+
+    phrases = get_cuis_for_abr(cache, phrase)
+
+    results = set()
+
+    # change fromdictionary to a set of strings.
+    for phrase in phrases:
+        for cui in phrases[phrase]:
+            results.add(cui)
+
+    return list(results)
+
+
+def get_most_freq_cui(cui_list):
+    """
+    from a list of strings get the cui string that appears the most frequently.
+
+    Note: if there is no frequency stored then this will crash.
+    """
+
+    cui_freq = pickle.load( open( os.getenv('CLICON_DIR' ) + "/cui_freq/cui_freq", "rb" ) )
+
+    cui_highest_freq = None
+
+    for cui in cui_list:
+
+        if cui in cui_freq:
+
+            # sets an initial cui
+            if cui_highest_freq is None:
+                cui_highest_freq = cui
+
+            # assign new highest
+            elif cui_freq[cui] > cui_freq[cui_highest_freq]:
+                cui_highest_freq = cui   
+
+    # at this point we have not found any concept ids with a frequency greater than 0.
+    # good chance it is CUI-less
+    if cui_highest_freq is None:
+        cui_highest_freq = "CUI-less"
+
+    return cui_highest_freq
+
+def filter_cuis_by_tui(cache, cuis, filter=["T020", # acquired abnormality
+                                         "T190", # Anatomical Abnormality
+                                         "T049", # Cell or Molecular Dysfunction
+                                         "T019", # Congenital Abnormality
+                                         "T047", # Disease or Syndrome
+                                         "T050", # Experimental Model of Disease
+                                         "T033", # Finding
+                                         "T037", # Injury or Poisoning
+                                         "T048", # Mental or Behavioral Dysfunction
+                                         "T191", # Neoplastic Process
+                                         "T046", # Pathologic Function
+                                         "T184"]):
+    """ removes cuis that do not have tui that is in the filter """
+    results = set()
+
+    for cui in cuis:
+        for tui in get_tui(cache, cui):
+            if tui in filter:
+                results.add(cui)
+                break
+
+    return list(results)
+
+def obtain_concept_id(cache, phrase, filter):
+    """
+    perform a concept id lookup for a phrase of a certain tui
+    """
+
+    cuis = set()
+
+    # NOTE: gotConceptId is very time consuming
+    # sets are not indexable so convert for indexing.
+    # getConceptId returns dictionary of the form {"text":"text argument", "concept_ids":Set([..])}
+    conceptIds = getConceptId(phrase)["concept_ids"]
+
+    if conceptIds is not None:
+        cuis = cuis.union(filter_cuis_by_tui(cache, list(conceptIds), filter=filter))
+
+    conceptId = get_most_freq_cui(list(cuis))
+
+    if conceptId == "CUI-less":
+
+        cuis = set()
+
+        normPhrases = []
+
+        # normalize with lvg
+        #normPhrases = lvgNormalize(phrase)
+
+        norm = ""
+        for char in phrase:
+            if char.isalnum() is True or char.isspace() is True:
+                norm += char
+
+        # in some cases CASE does matter for abbreviations
+        normPhrases.append( norm )
+
+        for normPhrase in normPhrases:
+
+            # get expansions of abbreviations and search for their cuis
+            if len(normPhrase) < 4:
+                cuisForAbr = get_list_all_possible_cuis_for_abrv(cache, normPhrase)
+                cuisForAbr = filter_cuis_by_tui(cache, cuisForAbr, filter=filter)
+                cuis = cuis.union(cuisForAbr)
+
+            # if phrase is longer than 3 chars then it is probably not an abbreviation.
+            else:
+                conceptIds = get_cui(cache, normPhrase)
+                conceptIds = filter_cuis_by_tui(cache, conceptIds, filter=filter)
+                cuis = cuis.union(conceptIds)
+
+        # get most frequent cui
+        if len(cuis) != 0:
+            conceptId = get_most_freq_cui(list(cuis))
+        else:
+            conceptId = "CUI-less"
+
+        # perform spell checking and attempt search for cui one last time.
+        if conceptId == "CUI-less":
+
+            cuis = set()
+
+            phrase = spellCheck(phrase)
+
+            conceptIds = getConceptId(phrase)["concept_ids"]
+
+            if conceptIds is not None:
+                cuis = cuis.union(filter_cuis_by_tui(cache, list(conceptIds), filter=filter))
+
+            conceptId = get_most_freq_cui(list(cuis))
+
+    return conceptId
+
+#EOF
 
