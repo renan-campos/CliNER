@@ -72,13 +72,11 @@ def main():
       default = None
     )
 
-    cache = UmlsCache()
+    #print "testing concept id lookup"
 
-    print "testing concept id lookup"
+    #testConceptLookup()
 
-    testConceptLookup()
-
-    return
+    #return
 
     args = parser.parse_args()
 
@@ -86,7 +84,7 @@ def main():
     # Parse arguments
     files = glob.glob(args.input + "/*")
 
-    print files
+    #print files
 
     helper.mkpath(args.output)
     format = args.format
@@ -177,7 +175,7 @@ def testConceptLookup():
                                          "T046", # Pathologic Function
                                          "T184"]
 
-    pipeFilePaths = glob.glob("/data1/kwacome/clicon_home/test/train/pipe/*")
+    pipeFilePaths = glob.glob("../../clicon_home/test/train/pipe/*")
 
     for fileNum, pipeFilePath in enumerate(pipeFilePaths):
 
