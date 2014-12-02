@@ -144,42 +144,45 @@ class Note_semeval(AbstractNote):
             #print text
 
             self.text = text
+            
 
             # Sentence splitter
             sents = self.sent_tokenizer.tokenize(txt)
 
             #print "\nSENTS:-----------------------------"
-            #print sents
+            #print sents[58]
+
 
             # Tokenize each sentence into words (and save line number indices)
             toks = []
             gold = []          # Actual lines
             
+            i = 0
             for s in sents:
+                i += 1
            
                 gold.append(s)
 
-                #b = True#'residual' in s
-                #if b: print "\nsentence:-------------------------------"
-
-                #if b: print s
+                b = False
+                if b: print "\nsentence:-------------------------------"
+                if b: print '<s>' + s + '</s>'
 
                 # Store data
                 toks = self.word_tokenizer.tokenize(s)
 
-                #if b: print "\ntokenized sentence:----------------------------"
-                #if b: print toks
+                if b: print "\ntokenized sentence:----------------------------"
+                if b: print toks
 
                 self.data.append(toks)
 
                 # Keep track of which indices each line has
                 end = start + len(s)
 
-                #if b: print "\nindices:---------------------------------------"
-                #if b: print (start, end)
+                if b: print "\nindices:---------------------------------------"
+                if b: print (start, end)
 
-                #if b: print "\nusing index on entire txt----------------------"
-                #if b: print '<s>' + text[start:end] + '</s>'
+                if b: print "\nusing index on entire txt----------------------"
+                if b: print '<s>' + text[start:end] + '</s>'
 
                 # EQUAL?
                 assert( text[start:end] == s ), 'data and text must agree'
@@ -229,6 +232,7 @@ class Note_semeval(AbstractNote):
 
             # Safe guard against concept file having duplicate entries
             #classifications = list(set(classifications))
+            classifications = sorted(classifications, cmp=concept_cmp)
 
             '''
             # TODO - Atomize spans
@@ -251,8 +255,43 @@ class Note_semeval(AbstractNote):
             exit()
             '''
 
+            # Hack: Throw away subsumed spans
+            # ex. "left and right atrial dilitation" from 02136-017465.text
+            classifs = reduce(lambda a,b: a+b,map(lambda t:t[1],classifications))
+            classifs = list(set(classifs))
+            classifs = sorted(classifs, key=lambda s:s[0])
+            #print classifs
+
+            from utilities_for_notes import span_relationship
+
+            newClassifications = []
+            for c in classifications:
+
+                for span in c[1]:
+                    #print span
+                    
+                    # Slow!
+                    # Determine if any part of span is subsumed by other span
+                    ignore = False
+                    for cand in classifs:
+                        # Don't let identity spans mess up comparison
+                        if span == cand: continue
+
+                        # Is current span subsumed?
+                        rel = span_relationship(span,cand)
+                        if rel == 'subsumes':
+                            ignore = True
+
+                # Only add if no spans are subsumed by others
+                if not ignore:
+                    newClassifications.append(c)
+
+            #for c in newClassifications: print c
+            self.classifications = newClassifications
+    
+
             # Concept file does not guarantee ordering by line number
-            self.classifications = sorted(classifications, cmp=concept_cmp)
+            #self.classifications = sorted(classifications, cmp=concept_cmp)
 
 
 

@@ -175,9 +175,12 @@ class Note:
                         that belong in the same noncontiguous span      ***
         """
 
+        j = 0
+        data = self.derived_note.data
+
         # Create mapping from token indices to chunk indices
         tok_to_chunk_index_map = []
-        for iobs in self.iob_labels:
+        for iobs in self.getIOBLabels():
             # One line of chunked phrases
             line = {}
             seen_chunks = 0
@@ -190,6 +193,12 @@ class Note:
                     line[i] = seen_chunks
                     seen_chunks += 1
 
+            if j == 93:
+                print j, ': ', line
+                print iobs
+                print data[j]
+                print
+            j += 1
             tok_to_chunk_index_map.append(line)
 
 
@@ -201,6 +210,9 @@ class Note:
         line_inds = self.derived_note.getLineIndices()
         data = self.derived_note.data
         text = self.derived_note.text
+
+        #for i,line in enumerate(data): print i, ': ', line
+        #print '\n\n\n'
 
         # For each concept instance
         for classification in self.derived_note.getClassificationTuples():
@@ -216,6 +228,12 @@ class Note:
                 # character offset span --> lineno and list of token index spans
                 lineno,tokspan = lineno_and_tokspan(line_inds, data, text, span)
                 tok_spans.append(tokspan)
+                p = False #lineno == 93
+                if p: print
+                if p: print 'text-span: ', span
+                if p: print 'text: ', text[span[0]:span[1]]
+                if p: print 'lineno: ', lineno
+                if p: print 'first_lineno: ', first_lineno
 
                 # Ensure all noncontig spans are together on one line
                 if first_lineno == None: first_lineno = lineno
@@ -224,8 +242,8 @@ class Note:
             # list of token index spans --> list of chunk indices
             chunk_inds = []
             for span in tok_spans:
-                #print lineno, '\t', span
-                #print tok_to_chunk_index_map[lineno]
+                if p: print lineno, '\t', span
+                if p: print tok_to_chunk_index_map[lineno]
                 ind = tok_to_chunk_index_map[lineno][span[0]]
                 chunk_inds.append(ind)
 
@@ -252,6 +270,42 @@ class Note:
         data = self.derived_note.data
         text = self.derived_note.text
 
+        print '\n\n'+'/'*40+'\n\n'
+
+        '''
+        # Hack: Throw away subsumed spans
+        # ex. "left and right atrial dilitation" from 02136-017465.text
+        classifs = reduce(lambda a,b: a+b,map(lambda t:t[1],classifications))
+        classifs = list(set(classifs))
+        classifs = sorted(classifs, key=lambda s:s[0])
+        #print classifs
+
+        from utilities_for_notes import span_relationship
+
+        newClassifications = []
+        for c in classifications:
+
+            for span in c[1]:
+                #print span
+
+                # Slow!
+                # Determine if any part of span is subsumed by other span
+                ignore = False
+                for cand in classifs:
+                    # Don't let identity spans mess up comparison
+                    if span == cand: continue
+
+                    # Is current span subsumed?
+                    rel = span_relationship(span,cand)
+                    if rel == 'subsumes':
+                        ignore = True
+
+            # Only add if no spans are subsumed by others
+            if not ignore:
+                newClassifications.append(c)
+        '''
+
+
         # Add 'B's and 'I's from concept spans
         for classification in self.derived_note.getClassificationTuples():
             concept,char_spans = classification
@@ -261,14 +315,20 @@ class Note:
                 lineno,tokspan = lineno_and_tokspan(line_inds, data, text, span)
                 start,end = tokspan
 
+                if lineno == 93:
+                    print 'span: ', span
+                    print 'tokspan: ', tokspan
+                    print '\n\n'
+
                 # Update concept tokens to 'B's and 'I's
                 iobs[lineno][start] = 'B'
                 for i in range(start+1,end+1):
                     iobs[lineno][i] = 'I'
 
-        i = 87
-        #for p in zip(data[i],iobs[i]): print p
-        #exit()
+        i = 0
+        for it in zip(iobs[93],data[93]): 
+            print i,it
+            i += 1
 
         # Memoize for next call
         self.iob_labels = iobs

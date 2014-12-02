@@ -53,50 +53,64 @@ def lineno_and_tokspan(line_inds, data, text, char_span):
         if char_span[1] <= span[1]:
 
             #print
-            #print "span: ", span
+            #print "line-span: ", span
 
             # start and end of span relative to sentence
             start = char_span[0] - span[0]
             end   = char_span[1] - span[0]
 
-            #print "START: ", start
-            #print "END: ", end
+            p = 7558 == char_span[0]#'bowel movement' in text[span[0]:span[1]][start:end]
+            if p: print
+            if p: print char_span
+            if p: print "START: ", start
+            if p: print "END: ", end
 
             #print "USING span on text: ~" + text[span[0]:span[1]] + '~'
-            #print "USING start and end: ~" + text[span[0]:span[1]][start:end]+'~'
+            if p: print "USING start and end: ~" + text[span[0]:span[1]][start:end]+'~'
 
-            #print "data", data[i]
+            #print "DATA: ", data[i]
             tok_span = [0,len(data[i])-1]
             char_count = 0
 
-            dataWithEmptyChars = re.split(" |\n|\t", text[span[0]:span[1] + 1])
+            dataWithEmptyChars = wtokenizer.tokenize(text[span[0]:span[1] + 1])
+            #dataWithEmptyChars = data[i]
 
             index = 0
+            beginning_found = False
             for j,tok in enumerate(dataWithEmptyChars):
                 if char_count > end:
                     tok_span[1] = index -1
                     break
-                elif char_count == start:
+                elif (beginning_found == False) and (char_count >= start):
                     tok_span[0] = index
-                char_count += len(tok) + 1
+                    beginning_found = True
+                char_count += len(tok) #+ 1
+
+                val = span[0]+char_count
+                if p: print '|' + text[val-3:val+4] + '|' , '(%d)' % char_count
+                if p: print '|' + text[val] + '|'
+
                 if len(tok) > 0:
                    index += 1
-                #print '\t',j, '\t', tok, '(', char_count, ')'
+                if p: print '\t',j, '\t', tok, '(', char_count, ')'
 
-            #print start, end
-            #print tok_span
-            #print text[span[0]:span[1]]
-            #print data[i][tok_span[0]:tok_span[1]]
-            #print
+                # Skip ahead to next non-whitespace (doesnt account for EOF)
+                while text[span[0]+char_count].isspace(): 
+                    char_count += 1
+
+
+            if p: print 'start/end:   ', start, end
+            if p: print 'tok_span:    ', tok_span
+            if p: print 'text:        ', text[span[0]:span[1]]
+            if p: print
 
             # return line number AND token span
-            #print "LINE: ", i
-            #print "TOK SPAN: ", tok_span
-            #print data[i]
-            #print tok_span
+            if p: print "LINE: ", i
+            if p: print "TOK SPAN: ", tok_span
+            if p: print data[i]
 
-            #print "USING char_span on text: ", text[char_span[0]:char_span[1]]
-            #print "USING tok_span on data[i]", data[i][tok_span[0]], data[i][tok_span[1]]
+            if p: print "USING char_span on text: ", text[char_span[0]:char_span[1]]
+            if p: print "USING tok_span on data[i]", data[i][tok_span[0]], data[i][tok_span[1]]
 
             return (i, tuple(tok_span))
 
@@ -201,7 +215,20 @@ class SentenceTokenizer:
     def tokenize(self, text_file):
         """ Split the document into sentences """
         text = open(text_file, 'r').read()
-        return self.sent_tokenizer.tokenize(text)
+
+        # First pass: tokenizer
+        first_pass = self.sent_tokenizer.tokenize(text)
+        return first_pass
+
+        # Second pass, delimit on '\n'
+        #retVal = []
+        #for tok in first_pass:
+        #    line_split = tok.split('\n')
+        #    retVal.append(line_split[0])
+        #    for t in line_split[1:]:
+        #        #retVal.append('\n')
+        #        if t != '': retVal.append(t)
+        #return retVal
 
 
 
@@ -214,5 +241,26 @@ class WordTokenizer:
 
     def tokenize(self, sent):
         """ Split the sentence into tokens """
-        return sent.split()
+        toks = nltk.tokenize.word_tokenize(sent)
+
+        # Second pass, delimit on token-combiners such as '/' and '-'
+        delims = ['/', '-', '(', ')', ',', '.', ':', '*', '[', ']', '%', '+']
+        for delim in delims:
+            retVal = []
+            for tok in toks:
+                line_split = tok.split(delim)
+                if line_split[0] != '': retVal.append(line_split[0])
+                for t in line_split[1:]:
+                    retVal.append(delim)
+                    if t != '': retVal.append(t)
+            toks = retVal
+
+        return retVal
+
+
+
+
+# Instantiate tokenizers
+wtokenizer = WordTokenizer()
+stokenizer = SentenceTokenizer()
 
