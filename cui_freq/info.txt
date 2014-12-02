@@ -1,0 +1,2 @@
+holds frequency of a concept id calculated from training data and used in deciding a concept id when multiple concept ids are returned by metamap when
+given a phrase.
