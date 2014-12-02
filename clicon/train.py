@@ -159,6 +159,9 @@ def train(training_list, model_path, format, is_crf=True, grid=False, third=Fals
     with open(model_path, "wb") as m_file:
         pickle.dump(model, m_file)
 
+    # return trained model
+    return model
+
 # used for task B. stores the number of occurences of a concept id
 def calcFreqOfCuis(training_list):
 
@@ -206,10 +209,6 @@ def calcFreqOfCuis(training_list):
     print 'pickle dump concept id frequencies'
     with open(os.getenv('CLICON_DIR')+"/cui_freq/cui_freq", "wb") as freq_file:
         pickle.dump(cui_freq, freq_file)
-
-    # return trained model
-    return model
-
 
 
 if __name__ == '__main__':

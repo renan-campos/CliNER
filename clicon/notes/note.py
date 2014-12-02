@@ -315,20 +315,20 @@ class Note:
                 lineno,tokspan = lineno_and_tokspan(line_inds, data, text, span)
                 start,end = tokspan
 
-                if lineno == 93:
-                    print 'span: ', span
-                    print 'tokspan: ', tokspan
-                    print '\n\n'
+    #            if lineno == 93:
+    #                print 'span: ', span
+    #                print 'tokspan: ', tokspan
+    #                print '\n\n'
 
                 # Update concept tokens to 'B's and 'I's
                 iobs[lineno][start] = 'B'
                 for i in range(start+1,end+1):
                     iobs[lineno][i] = 'I'
 
-        i = 0
-        for it in zip(iobs[93],data[93]): 
-            print i,it
-            i += 1
+    #    i = 0
+    #    for it in zip(iobs[93],data[93]): 
+    #        print i,it
+    #        i += 1
 
         # Memoize for next call
         self.iob_labels = iobs
