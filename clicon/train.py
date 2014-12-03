@@ -130,11 +130,12 @@ def train(training_list, model_path, format, is_crf=True, grid=False, third=Fals
 
     # Read the data into a Note object
     notes = []
+
     for txt, con in training_list:
+
         note_tmp = Note(format)       # Create Note
         note_tmp.read(txt, con)       # Read data into Note
         notes.append(note_tmp)        # Add the Note to the list
-
 
     if format == "semeval":
         calcFreqOfCuis(training_list)
