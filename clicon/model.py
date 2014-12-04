@@ -607,7 +607,7 @@ class Model:
         print '\tvectorizing features (pass three)'
 
         # Vectorize features
-        X = self.third_vec.fit_transform(unvectorized_X)
+        X = self.third_vec.transform(unvectorized_X)
 
 
 
