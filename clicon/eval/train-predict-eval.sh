@@ -10,18 +10,18 @@ TEST_FILES="10101-012638"
 #TEST_FILES="*"
 
 # Train model
-clicon train "$CLICON_DIR/data/semeval/train/txt/$TRAIN_FILES.text" --annotations "$CLICON_DIR/data/semeval/train/con/$TRAIN_FILES.pipe" --format semeval --third
+#clicon train "$CLICON_DIR/data/semeval/train/txt/$TRAIN_FILES.text" --annotations "$CLICON_DIR/data/semeval/train/con/$TRAIN_FILES.pipe" --format semeval --third
 #clicon train "$CLICON_DIR/data/semeval/train/txt/$TRAIN_FILES.text" --annotations "$CLICON_DIR/data/semeval/train/con/$TRAIN_FILES.pipe" --format semeval
 
 # Gather evaluation data
 rm -f $CLICON_DIR/clicon/eval/run-data/gold/*
-#cp $CLICON_DIR/data/semeval/train/con/$TRAIN_FILES.pipe $CLICON_DIR/clicon/eval/run-data/gold
-cp $CLICON_DIR/data/semeval/test/con/$TEST_FILES.pipe $CLICON_DIR/clicon/eval/run-data/gold
+cp $CLICON_DIR/data/semeval/train/con/$TRAIN_FILES.pipe $CLICON_DIR/clicon/eval/run-data/gold
+#cp $CLICON_DIR/data/semeval/test/con/$TEST_FILES.pipe $CLICON_DIR/clicon/eval/run-data/gold
 
 # Predict
 rm -f $CLICON_DIR/clicon/eval/run-data/predict/*
-#clicon predict "$CLICON_DIR/data/semeval/train/txt/$TRAIN_FILES.text" --format semeval --out $CLICON_DIR/clicon/eval/run-data/predict --third
-clicon predict "$CLICON_DIR/data/semeval/test/txt/$TEST_FILES.text" --format semeval --out $CLICON_DIR/clicon/eval/run-data/predict
+clicon predict "$CLICON_DIR/data/semeval/train/txt/$TRAIN_FILES.text" --format semeval --out $CLICON_DIR/clicon/eval/run-data/predict --third
+#clicon predict "$CLICON_DIR/data/semeval/test/txt/$TEST_FILES.text" --format semeval --out $CLICON_DIR/clicon/eval/run-data/predict
 
 
 # Run eval script
