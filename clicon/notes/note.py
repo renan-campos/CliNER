@@ -52,6 +52,8 @@ class Note:
         self.iob_labels      = []
         self.text_chunks     = []
 
+        self.txtPath = None
+        self.conPath = None
 
 
     @staticmethod
@@ -119,6 +121,10 @@ class Note:
         Purpose: Call derived object's reader
         """
         retVal = self.derived_note.read(txt_file, con_file)
+
+        self.txtPath = txt_file
+        self.conPath = con_file
+
         self.getIOBLabels()
         return retVal
 
@@ -237,6 +243,8 @@ class Note:
 
                 # Ensure all noncontig spans are together on one line
                 if first_lineno == None: first_lineno = lineno
+                #print lineno
+                #print first_lineno
                 assert (lineno == first_lineno)
 
             # list of token index spans --> list of chunk indices
@@ -315,20 +323,15 @@ class Note:
                 lineno,tokspan = lineno_and_tokspan(line_inds, data, text, span)
                 start,end = tokspan
 
-                if lineno == 93:
-                    print 'span: ', span
-                    print 'tokspan: ', tokspan
-                    print '\n\n'
+    #            if lineno == 93:
+    #                print 'span: ', span
+    #                print 'tokspan: ', tokspan
+    #                print '\n\n'
 
                 # Update concept tokens to 'B's and 'I's
                 iobs[lineno][start] = 'B'
                 for i in range(start+1,end+1):
                     iobs[lineno][i] = 'I'
-
-        #i = 0
-        #for it in zip(iobs[93],data[93]): 
-        #    print i,it
-        #    i += 1
 
         # Memoize for next call
         self.iob_labels = iobs

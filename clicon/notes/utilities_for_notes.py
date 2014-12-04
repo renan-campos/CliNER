@@ -95,9 +95,11 @@ def lineno_and_tokspan(line_inds, data, text, char_span):
                 if p: print '\t',j, '\t', tok, '(', char_count, ')'
 
                 # Skip ahead to next non-whitespace (doesnt account for EOF)
+                #print text
                 while text[span[0]+char_count].isspace(): 
                     char_count += 1
-
+                    if (span[0] + char_count) >= len(text):
+                        break
 
             if p: print 'start/end:   ', start, end
             if p: print 'tok_span:    ', tok_span

@@ -130,6 +130,7 @@ class Note_semeval(AbstractNote):
 
 
     def read(self, txt, con=None):            
+        print "semeval note read called"
 
         # Filename
         self.fileName = txt

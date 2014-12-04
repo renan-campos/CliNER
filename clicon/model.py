@@ -77,7 +77,7 @@ class Model:
 
         # Train classifier (side effect - saved as object's member variable)
         print 'first pass'
-        #self.first_train(data1, Y1, do_grid)
+        self.first_train(data1, Y1, do_grid)
 
 
 
@@ -97,13 +97,15 @@ class Model:
 
         # Train classifier (side effect - saved as object's member variable)
         print 'second pass'
-        #self.second_train(data2, inds, Y2, do_grid)
+        self.second_train(data2, inds, Y2, do_grid)
 
 
 
         ##############
         # Third pass #
         ##############
+
+#        file = open("getNonContiguousSpans.log", "w")
 
         if third:
 
@@ -114,6 +116,9 @@ class Model:
             classifications = []
             chunks = []
             for note in notes:
+
+            #    try:
+
                 # Annotations for groups
                 seen = len(chunks)
                 non_offset = note.getNonContiguousSpans()
@@ -122,6 +127,18 @@ class Model:
 
                 # Chunked text
                 chunks += note.getChunkedText()
+            """
+                except:
+                    file.write("Exception: ")
+                    file.write(str(sys.exc_info()))
+                    file.write('\n')
+                    file.write("File: " + note.txtPath + '\n')
+
+            file.close()
+            """
+            #file = open("traing_error.log", "w")
+
+            #try:
 
             # Data of all candidates
             indices = [  note.getConceptIndices()  for  note  in  notes  ]
@@ -130,9 +147,13 @@ class Model:
             # Train classifier (side effect - saved as object's member variable)
             print 'third pass'
             self.third_train(chunks, classifications, inds, do_grid)
-
-
-
+            """
+            except:
+                file.write("Exception: ")
+                file.write(str(sys.exc_info()))
+                file.write('\n')
+                file.write("File: " + note.txtPath + '\n')
+            """
 
 
 
@@ -586,7 +607,7 @@ class Model:
         print '\tvectorizing features (pass three)'
 
         # Vectorize features
-        X = self.third_vec.fit_transform(unvectorized_X)
+        X = self.third_vec.transform(unvectorized_X)
 
 
 

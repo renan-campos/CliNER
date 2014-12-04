@@ -87,7 +87,9 @@ def main():
 
 
     # Parse arguments
-    files = glob.glob(args.input + "/*")
+#    files = glob.glob(args.input + "/*")
+
+    files = glob.glob(args.input)
 
     #print files
 
@@ -120,6 +122,7 @@ def predict(files, model, output_dir, format, third=False):
         print >>sys.stderr, ''
         exit(1)
 
+#    file = open("predictError.log","w")
 
     # For each file, predict concept labels
     n = len(files)
@@ -134,10 +137,19 @@ def predict(files, model, output_dir, format, third=False):
         print '\n\t%d of %d' % (i+1,n)
         print '\t', txt, '\n'
 
+        #try:
 
-        # Predict concept labels
+            # Predict concept labels
         labels = model.predict(note, third)
-
+        """
+	except:
+            print "EXCEPTION!"
+	    file.write("Exception: ")
+	    file.write(str(sys.exc_info()))
+	    file.write('\n')
+	    file.write("File: " + note.txtPath + '\n')
+            continue
+        """
         # Output file
         extension = note.getExtension()
         fname = os.path.splitext(os.path.basename(txt))[0] + '.' + extension
@@ -148,16 +160,16 @@ def predict(files, model, output_dir, format, third=False):
         output = note.write(labels)
 
         # task B
-        if format == "semeval":
+#        if format == "semeval":
             # for the spans generated obtain concept ids of phrase
-            output = taskB(output, txt)
+#            output = taskB(output, txt)
 
         # Output the concept predictions
         print '\n\nwriting to: ', out_path
         with open(out_path, 'w') as f:
             print >>f, output
         print
-
+    file.close()
 def testConceptLookup():
     """
     test how well concept id lookup performs
