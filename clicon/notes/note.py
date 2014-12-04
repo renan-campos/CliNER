@@ -325,10 +325,10 @@ class Note:
                 for i in range(start+1,end+1):
                     iobs[lineno][i] = 'I'
 
-        i = 0
-        for it in zip(iobs[93],data[93]): 
-            print i,it
-            i += 1
+        #i = 0
+        #for it in zip(iobs[93],data[93]): 
+        #    print i,it
+        #    i += 1
 
         # Memoize for next call
         self.iob_labels = iobs
