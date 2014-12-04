@@ -290,6 +290,9 @@ class Note_semeval(AbstractNote):
             #for c in newClassifications: print c
             self.classifications = newClassifications
     
+            #for c in newClassifications:
+            #    print c
+            #exit()
 
             # Concept file does not guarantee ordering by line number
             #self.classifications = sorted(classifications, cmp=concept_cmp)
@@ -316,6 +319,8 @@ class Note_semeval(AbstractNote):
                 # Get character offset span                
                 spans = []
                 for tokspan in tokspans:
+                    #print 'lno:     ', lno
+                    #print 'tokspan: ', tokspan
                     span = lno_and_tokspan__to__char_span(inds,data,text,lno,tokspan)
                     spans.append(span)
                 classifications.append( (concept,spans) )

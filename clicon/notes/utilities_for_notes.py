@@ -128,7 +128,7 @@ def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan,fname=
     start,end = line_inds[lineno]
     startTok,endTok = tokspan
 
-    dataWithEmpty= text[start:end].replace('\n',' ').replace('\t',' ').split(' ')
+    dataWithEmpty= wtokenizer.tokenize(text[start:end])
 
     #print '\n\n\n'
     #print 'start: ', start
@@ -137,30 +137,51 @@ def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan,fname=
     #print 'dataWith: ', dataWithEmpty
     #print
     #print 'data:     ', data[lineno]
+    #print
 
-    tokPosRelToSent = []
-    count = 0
-    for string in dataWithEmpty:
-        if string != '':
-            tokPosRelToSent.append((count, count + len(string)-1))
-            count += len(string) + 1
-        else:  # empty string
-            count += 1
+    # |330||338
 
-    startOfTokRelToText = tokPosRelToSent[startTok][0] + start
-    endOfTokRelToText   = tokPosRelToSent[  endTok][1] + start
+    region = text[start:end]
+    #print data[lineno][startTok]
+    #print text[start:end]
+    #print start
+
+    #print
+
+    ind = 0
+    for i in range(startTok):
+        #print region[ind-4:ind] + '<' + region[ind] + '>' + region[ind+1:ind+5]
+        #print ind
+        ind += len(dataWithEmpty[i])
+        while text[start+ind].isspace(): ind += 1
+        #print ind
+        #print
+
+    #print
+    #print '!!!'
+    #print
+
+    '''
+    jnd = ind
+    for i in range(startTok,endTok+1):
+        print region[jnd-4:jnd] + '<' + region[jnd] + '>' + region[jnd+1:jnd+5]
+        print jnd
+        jnd += len(dataWithEmpty[i])
+        while text[start+jnd].isspace(): jnd += 1
+        print jnd
+        print
+
+    #while text[start+jnd-1].isspace(): jnd -= 1
+    '''
+
+    startOfTokRelToText = start + ind
+    #endOfTokRelToText   = start + jnd
+    endOfTokRelToText   = start + ind + len(dataWithEmpty[startTok])
 
     #print '---' + text[endOfTokRelToText-3:endOfTokRelToText+4] + '---'
 
     #print startOfTokRelToText, '  ', endOfTokRelToText
-
-    # Heuristc / Hack for determining when to include extra space
-    if (    text[endOfTokRelToText  ].isalpha()) and \
-       (not text[endOfTokRelToText+1].isalpha()) :
-               endOfTokRelToText += 1
-
-    #print startOfTokRelToText, '  ', endOfTokRelToText
-    #print '\n'
+    #if startTok != endTok: exit()
 
     return startOfTokRelToText,endOfTokRelToText
 

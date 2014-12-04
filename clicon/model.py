@@ -316,11 +316,14 @@ class Model:
                     if i == j: continue
                     relations[lineno][key].append(spans[j])
 
-        #print chunks
-        #print
-        #print classifications
-        #print
-        #print inds
+        '''
+        print chunks
+        print
+        print classifications
+        print
+        print inds
+        exit()
+        '''
 
         print '\textracting  features (pass three)'
 
@@ -402,7 +405,8 @@ class Model:
         # Predict concept labels
         classifications = self.second_predict(chunks,inds)
 
-
+        #print classifications
+        #exit()
 
         ##############
         # Third pass #
@@ -416,6 +420,8 @@ class Model:
             # Treat each as its own set of spans (each set containing one tuple)
             clustered = [ (c[0],c[1],[(c[2],c[3])]) for c in classifications ]
 
+        #print clustered
+        #exit()
 
         return clustered
 
