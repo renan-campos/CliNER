@@ -137,8 +137,11 @@ def train(training_list, model_path, format, is_crf=True, grid=False, third=Fals
         note_tmp.read(txt, con)       # Read data into Note
         notes.append(note_tmp)        # Add the Note to the list
 
+
+    # Task B
     if format == "semeval":
-        calcFreqOfCuis(training_list)
+        #calcFreqOfCuis(training_list)
+        pass
 
 
     # file names

@@ -160,16 +160,19 @@ def predict(files, model, output_dir, format, third=False):
         output = note.write(labels)
 
         # task B
-#        if format == "semeval":
-            # for the spans generated obtain concept ids of phrase
-#            output = taskB(output, txt)
+        #if format == "semeval":
+        #    # for the spans generated obtain concept ids of phrase
+        #     output = taskB(output, txt)
 
         # Output the concept predictions
         print '\n\nwriting to: ', out_path
         with open(out_path, 'w') as f:
             print >>f, output
         print
-    file.close()
+
+    #file.close()
+
+
 def testConceptLookup():
     """
     test how well concept id lookup performs
