@@ -119,11 +119,75 @@ def lineno_and_tokspan(line_inds, data, text, char_span):
     return None
 
 
-
-
 # Helper function
 def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan,fname='foo'):
     """ File character offsets => line number and index into line """
+
+    start,end = line_inds[lineno]
+    startTok,endTok = tokspan
+
+    dataWithEmpty= wtokenizer.tokenize(text[start:end])
+
+    #print '\n\n\n'
+    #print 'start: ', start
+    #print 'end:   ', end
+    #print 'd: ', text[start:end].replace('\n',' ').replace('\t',' ')
+    #print 'dataWith: ', dataWithEmpty
+    #print
+    #print 'data:     ', data[lineno]
+    #print
+
+    # |330||338
+
+    region = text[start:end]
+    #print data[lineno][startTok]
+    #print text[start:end]
+    #print start
+
+    #print
+
+    ind = 0
+    for i in range(startTok):
+        #print region[ind-4:ind] + '<' + region[ind] + '>' + region[ind+1:ind+5]
+        #print ind
+        ind += len(dataWithEmpty[i])
+        while text[start+ind].isspace(): ind += 1
+        #print ind
+        #print
+
+    #print
+    #print '!!!'
+    #print
+
+    '''
+    jnd = ind
+    for i in range(startTok,endTok+1):
+        print region[jnd-4:jnd] + '<' + region[jnd] + '>' + region[jnd+1:jnd+5]
+        print jnd
+        jnd += len(dataWithEmpty[i])
+        while text[start+jnd].isspace(): jnd += 1
+        print jnd
+        print
+
+    #while text[start+jnd-1].isspace(): jnd -= 1
+    '''
+
+    startOfTokRelToText = start + ind
+    #endOfTokRelToText   = start + jnd
+    endOfTokRelToText   = start + ind + len(dataWithEmpty[startTok])
+
+    #print '---' + text[endOfTokRelToText-3:endOfTokRelToText+4] + '---'
+
+    #print startOfTokRelToText, '  ', endOfTokRelToText
+    #if startTok != endTok: exit()
+
+    return startOfTokRelToText,endOfTokRelToText
+
+
+"""
+
+# Helper function
+def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan,fname='foo'):
 
     #print tokspan    
 
@@ -168,7 +232,9 @@ def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan,fname=
 
     #print "ENDTOK: ", len(dataWithEmpty[endTok])
 
-    endOfTokRelToText   = start + endInd + len(dataWithEmpty[endTok])
+    #endOfTokRelToText   = start + endInd + len(dataWithEmpty[endTok])
+
+    endOfTokRelToText = start + startInd + len(dataWithEmpty[startTok])
 
     #print startOfTokRelToText
     #print endOfTokRelToText
@@ -179,7 +245,7 @@ def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan,fname=
 
     return startOfTokRelToText,endOfTokRelToText
 
-
+"""
 
 
 def span_relationship(s1, s2):
