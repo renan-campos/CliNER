@@ -125,63 +125,57 @@ def lineno_and_tokspan(line_inds, data, text, char_span):
 def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan,fname='foo'):
     """ File character offsets => line number and index into line """
 
+    #print tokspan    
+
     start,end = line_inds[lineno]
     startTok,endTok = tokspan
 
     dataWithEmpty= wtokenizer.tokenize(text[start:end])
 
-    #print '\n\n\n'
-    #print 'start: ', start
-    #print 'end:   ', end
-    #print 'd: ', text[start:end].replace('\n',' ').replace('\t',' ')
-    #print 'dataWith: ', dataWithEmpty
-    #print
-    #print 'data:     ', data[lineno]
-    #print
-
-    # |330||338
-
     region = text[start:end]
+    
     #print data[lineno][startTok]
+    #print data[lineno][endTok]
     #print text[start:end]
     #print start
+    #print end
 
-    #print
+    startInd = 0
+    endInd   = 0
 
-    ind = 0
+    #print "BEGIN"
     for i in range(startTok):
         #print region[ind-4:ind] + '<' + region[ind] + '>' + region[ind+1:ind+5]
         #print ind
-        ind += len(dataWithEmpty[i])
-        while text[start+ind].isspace(): ind += 1
+        startInd += len(dataWithEmpty[i])
+        while text[start+startInd].isspace(): startInd += 1
         #print ind
         #print
 
-    #print
-    #print '!!!'
-    #print
+    #print "END"
+    for i in range(endTok):
+        #print "TOK: ", i
+        #print dataWithEmpty[i]
+        #print len(dataWithEmpty[i])
+        endInd += len(dataWithEmpty[i])
+        while text[start+endInd].isspace(): endInd += 1
 
-    '''
-    jnd = ind
-    for i in range(startTok,endTok+1):
-        print region[jnd-4:jnd] + '<' + region[jnd] + '>' + region[jnd+1:jnd+5]
-        print jnd
-        jnd += len(dataWithEmpty[i])
-        while text[start+jnd].isspace(): jnd += 1
-        print jnd
-        print
+    #print "endInd: ", endInd
 
-    #while text[start+jnd-1].isspace(): jnd -= 1
-    '''
+    #print "startInd: ", startInd
 
-    startOfTokRelToText = start + ind
-    #endOfTokRelToText   = start + jnd
-    endOfTokRelToText   = start + ind + len(dataWithEmpty[startTok])
+    startOfTokRelToText = start + startInd
 
-    #print '---' + text[endOfTokRelToText-3:endOfTokRelToText+4] + '---'
+    #print "ENDTOK: ", len(dataWithEmpty[endTok])
 
-    #print startOfTokRelToText, '  ', endOfTokRelToText
-    #if startTok != endTok: exit()
+    endOfTokRelToText   = start + endInd + len(dataWithEmpty[endTok])
+
+    #print startOfTokRelToText
+    #print endOfTokRelToText
+
+    #print text[startOfTokRelToText:endOfTokRelToText+1]
+    #print text[startOfTokRelToText]
+    #print text[endOfTokRelToText]
 
     return startOfTokRelToText,endOfTokRelToText
 
