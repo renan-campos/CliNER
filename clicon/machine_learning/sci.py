@@ -17,7 +17,11 @@ class TrivialClassifier:
 
 
 
-def train(X, Y, do_grid):
+def train(X, Y, do_grid, default_label=0):
+
+    # If there are no training examples, then you need a classifier that returns the default label
+    if len(Y) == 0:
+        return TrivialClassifier(default_label)
 
     # scikit-learn requires you train data with more than one label
     if len(Y) and all( [ (y==Y[0]) for y in Y ] ):
