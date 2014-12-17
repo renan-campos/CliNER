@@ -364,7 +364,7 @@ class Model:
 
         # Train classifier
         #print Y
-        self.third_clf = sci.train(X, Y, do_grid)
+        self.third_clf = sci.train(X, Y, do_grid, default_label=0)
 
 
 
