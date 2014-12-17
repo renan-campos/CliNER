@@ -140,8 +140,15 @@ class Model:
 
             #try:
 
+#            print "INDICESSSSSSS:", note.getConceptIndices()
+
             # Data of all candidates
+  
+
             indices = [  note.getConceptIndices()  for  note  in  notes  ]
+  
+#            print "INDICESSSS:", indices
+
             inds  = reduce( concat, indices )
 
             # Train classifier (side effect - saved as object's member variable)
@@ -206,7 +213,20 @@ class Model:
         for flabel,fset,chunks,dvect,clf in zip(flabels, fsets, chunksets, dvects, clfs):
 
             if len(fset) == 0:
-                raise Exception('Training data must have %s training examples' % flabel)
+
+                 # no training data available. create dummy data.
+
+                 Y = ['None']
+                 X = [{'dummy':1}]
+
+                 X = dvect.fit_transform(X)
+                 vectorizers.append(dvect)
+
+                 clf  = sci.train(X, Y, do_grid)
+                 classifiers.append(clf)
+
+                 continue
+#                raise Exception('Training data must have {0} training examples'.format(flabel))
 
             print '\tvectorizing features (pass one) ' + flabel
 
@@ -220,6 +240,8 @@ class Model:
 
             # Vectorize features
             flattened = [item for sublist in fset for item in sublist]
+            #print flattened
+
             X = dvect.fit_transform(flattened)
             vectorizers.append(dvect)
 
@@ -325,19 +347,23 @@ class Model:
         exit()
         '''
 
-        print '\textracting  features (pass three)'
+#        print '\textracting  features (pass three)'
 
         # Create object that is a wrapper for the features
         feat_obj = features.FeatureWrapper()
 
+#        print "inds in third_train:",inds
+
         # Extract features between pairs of chunks
         unvectorized_X = feat_obj.extract_third_pass_features(chunks, inds)
 
+#        print "unvectorized_X in third_train:", unvectorized_X
 
         print '\tvectorizing features (pass three)'
 
         # Construct boolean vector of annotations
         Y = []
+
         for lineno,indices in enumerate(inds):
             # Cannot have pairwise relationsips with either 0 or 1 objects
             if len(indices) < 2: continue
@@ -354,11 +380,11 @@ class Model:
                         shared = 0
                     # Positive or negative result for training
                     bools.append(shared)
+
             Y += bools
 
         # Vectorize features
         X = self.third_vec.fit_transform(unvectorized_X)
-
 
         print '\ttraining classifier  (pass three)'
 
@@ -622,6 +648,8 @@ class Model:
         # Predict concept labels
         predicted_relationships = sci.predict(self.third_clf, X)
 
+        #print predicted_relationships
+        #print inds
 
         # TODO: Create clustered spans using predictions
         #print predicted_relationships
@@ -704,7 +732,7 @@ class Model:
         #print clustered
         #print
         #exit()
-
+        #print clustered
         return clustered
 
 
