@@ -47,8 +47,22 @@ def compare_answers(pred_file, gold_file):
     print 'gold in: ', gold_file
     print
 
-    print "Oops! This file comparison function han't been implemented"
-    print
+    with open(pred_file,'r') as f:
+        pred = set(f.readlines())
+
+    with open(gold_file,'r') as f:
+        gold = set(f.readlines())
+
+    return
+    print '-'*40
+
+    # mismatches
+    for line in pred:
+        if line not in gold:
+            if line == '\n': continue
+            print line
+            print line.split('||')
+            begin = line.split('||')[3]
 
 
 

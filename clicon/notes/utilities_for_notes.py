@@ -9,6 +9,7 @@
 
 import nltk.data
 import re
+import string
 
 
 def classification_cmp(a,b):
@@ -221,7 +222,6 @@ def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan):
     # This is where I stopped working a few weeks ago, due to time constraints
     # This loop SHOULD iterate down the tokens to find the final character offset
     # The ending character index will be stored in 'jnd'
-    '''
     jnd = ind
     for i in range(startTok,endTok+1):
         print region[jnd-4:jnd] + '<' + region[jnd] + '>' + region[jnd+1:jnd+5]
@@ -231,16 +231,15 @@ def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan):
         print jnd
         print
 
-    #while text[start+jnd-1].isspace(): jnd -= 1
-    '''
+    while (text[start+jnd-1].isspace()) or (text[start+jnd-1] in string.punctuation): jnd -= 1
 
     # Absolute index = (index of sentence in file) + (index of span in sentence)
     startOfTokRelToText = start + ind
 
 
     # SHOULD BE THIS (once commented out for loop works)
-    #endOfTokRelToText   = start + jnd
-    endOfTokRelToText   = start + ind + len(dataWithEmpty[startTok])
+    endOfTokRelToText   = start + jnd
+    #endOfTokRelToText   = start + ind + len(dataWithEmpty[startTok])
 
 
     # DEBUG INFO
