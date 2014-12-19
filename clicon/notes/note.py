@@ -278,7 +278,7 @@ class Note:
         data = self.derived_note.data
         text = self.derived_note.text
 
-        print '\n\n'+'/'*40+'\n\n'
+        #print '\n\n'+'/'*40+'\n\n'
 
         '''
         # Hack: Throw away subsumed spans
