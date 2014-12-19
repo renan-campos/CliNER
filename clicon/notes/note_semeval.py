@@ -302,16 +302,17 @@ class Note_semeval(AbstractNote):
 
     def write(self, labels):
 
-        # If given labels to write, use them. Default to self.classifications
+        # Case: User DOES provide predicted annotations (classification tuples)
         if labels != None:
             # Translate token-level annotations to character offsets
             classifications = []
             for classification in labels:
+                # Data needed to recover original character offsets
                 inds = self.line_inds
                 data = self.data
                 text = self.text
                 
-                # FIXME - Assumes that token-level does not have noncontig
+                # Unpack classification span
                 concept  = classification[0]
                 lno      = classification[1] - 1
                 tokspans = classification[2]
@@ -319,9 +320,8 @@ class Note_semeval(AbstractNote):
                 # Get character offset span                
                 spans = []
                 for tokspan in tokspans:
-                    #print 'lno:     ', lno
-                    #print 'tokspan: ', tokspan
-                    span = lno_and_tokspan__to__char_span(inds,data,text,lno,tokspan)
+                    span = lno_and_tokspan__to__char_span(inds,data,text,
+                                                                 lno,tokspan)
                     spans.append(span)
                 classifications.append( (concept,spans) )
 
@@ -330,14 +330,18 @@ class Note_semeval(AbstractNote):
         else:
             raise Exception('Cannot write concept file: must specify labels')
 
-        # return value
+
+        # Assertion: 'classifications' is a list of (concept,char-span) tups
+
+
+        # Build output string
         retStr = ''
 
+        # For each classification, format to semeval style
         for concept,span_inds in classifications:
             retStr += self.fileName + '||%s||CUI-less' % concept
             for span in span_inds:
                 retStr += '||' + str(span[0]) + "||" +  str(span[1])
-            #retStr += '||' + str(span_inds[0]) + "||" +  str(span_inds[1])
             retStr += '\n'
 
         return retStr

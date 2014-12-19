@@ -119,7 +119,22 @@ def lineno_and_tokspan(line_inds, data, text, char_span):
     return None
 
 
-# Helper function
+
+#
+# FIXME: Anna, look here!!
+#
+#
+# Goal: It seems to locate the beginning character index, but it does not
+#         correctly identify the character index of where the span ends
+#
+#
+# This function is called from exactly one place:
+#
+#     $CLICON_DIR/clicon/notes/note_semeval.py
+#
+#  line 323  (part of the Note_semval::write() method)
+#
+#
 def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan):
 
     '''
