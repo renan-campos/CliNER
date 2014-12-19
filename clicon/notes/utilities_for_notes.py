@@ -122,15 +122,61 @@ def lineno_and_tokspan(line_inds, data, text, char_span):
 
 
 # Helper function
-def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan,fname='foo'):
-    """ File character offsets => line number and index into line """
+def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan):
 
-    start,end = line_inds[lineno]
+    '''
+    lno_and_tokspan__to__char_span
+
+    Purpose: File character offsets => line number and index into line
+
+    @param line_inds: list of tuples
+           - each element is a (start,end) tuples of file character offsets
+           - each tuples marks the beginning/end of the tokenized sentences
+           - ex. line_inds = [(0, 353), (355, 459), (461, 567)]
+
+    @param data: list of list of strings
+           - each element of 'data' is a tokenized sentence
+           - every element of the tokenized sentence is a token NOT a chunk
+               - NOTE: a chunk is a string predicted as BIIII etc from pass 1.
+                       a chunks could be multiple words long
+           - ex. data = [ ['Patient', 'likes', 'medicine', '.']  , 
+                          ['Patient', 'looks', 'sick', '.']       ]
+
+    @param text: string
+           - the verbatim text file
+           - ex. text = "Patient likes medicine.  Patient looks sick."
+
+    @param lineno
+           - index into 'line_inds' to identify which sentence we want to look at
+           - ex. lineno = 0
+
+    @param tokspan: 2-tuple of integers
+           - start/end pair of the TOKENS that we want to return the char inds of
+           - ex. (91, 91)
+
+    @return 2-tuple of integers
+           - start/end pair of CHARACTER offsets into the file (AKA 'text')
+           - ex. (330,338)
+    '''
+
+    # Unpack start and end TOKEN indices
     startTok,endTok = tokspan
 
-    dataWithEmpty= wtokenizer.tokenize(text[start:end])
 
+    # character offsets of line we want to look at
+    start,end = line_inds[lineno]
+
+    # region: the slice of the file that contains the line we want to look at
+    region = text[start:end]
+
+    # Tokenize original file text
+    dataWithEmpty = wtokenizer.tokenize(text[start:end])
+
+
+    # DEBUG INFO
     #print '\n\n\n'
+    #print '-'*60
+    #print
     #print 'start: ', start
     #print 'end:   ', end
     #print 'd: ', text[start:end].replace('\n',' ').replace('\t',' ')
@@ -139,28 +185,29 @@ def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan,fname=
     #print 'data:     ', data[lineno]
     #print
 
-    # |330||338
 
-    region = text[start:end]
+    # DEBUG INFO
     #print data[lineno][startTok]
     #print text[start:end]
     #print start
-
     #print
 
+
+    # Identify where in the sentence's string the concept in question begins
+    # After loop, 'ind' will be the index into 'region' where the concept begins
     ind = 0
     for i in range(startTok):
-        #print region[ind-4:ind] + '<' + region[ind] + '>' + region[ind+1:ind+5]
-        #print ind
+        # Jumps over next token and advances index over all trailing whitespace
         ind += len(dataWithEmpty[i])
         while text[start+ind].isspace(): ind += 1
-        #print ind
-        #print
 
-    #print
-    #print '!!!'
-    #print
+        # DEBUG INFO: IDENTIFIES WHERE ind IS LOOKING AS INDEX INTO region
+        #print region[ind-4:ind] + '<' + region[ind] + '>' + region[ind+1:ind+5]
 
+
+    # This is where I stopped working a few weeks ago, due to time constraints
+    # This loop SHOULD iterate down the tokens to find the final character offset
+    # The ending character index will be stored in 'jnd'
     '''
     jnd = ind
     for i in range(startTok,endTok+1):
@@ -174,14 +221,20 @@ def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan,fname=
     #while text[start+jnd-1].isspace(): jnd -= 1
     '''
 
+    # Absolute index = (index of sentence in file) + (index of span in sentence)
     startOfTokRelToText = start + ind
+
+
+    # SHOULD BE THIS (once commented out for loop works)
     #endOfTokRelToText   = start + jnd
     endOfTokRelToText   = start + ind + len(dataWithEmpty[startTok])
 
-    #print '---' + text[endOfTokRelToText-3:endOfTokRelToText+4] + '---'
 
+    # DEBUG INFO
+    #print '---' + text[endOfTokRelToText-3:endOfTokRelToText+4] + '---'
     #print startOfTokRelToText, '  ', endOfTokRelToText
     #if startTok != endTok: exit()
+
 
     return startOfTokRelToText,endOfTokRelToText
 
