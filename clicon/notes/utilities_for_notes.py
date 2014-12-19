@@ -119,8 +119,6 @@ def lineno_and_tokspan(line_inds, data, text, char_span):
     return None
 
 
-
-
 # Helper function
 def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan):
 
@@ -239,6 +237,68 @@ def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan):
     return startOfTokRelToText,endOfTokRelToText
 
 
+"""
+
+# Helper function
+def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan,fname='foo'):
+
+    #print tokspan    
+
+    start,end = line_inds[lineno]
+    startTok,endTok = tokspan
+
+    dataWithEmpty= wtokenizer.tokenize(text[start:end])
+
+    region = text[start:end]
+    
+    #print data[lineno][startTok]
+    #print data[lineno][endTok]
+    #print text[start:end]
+    #print start
+    #print end
+
+    startInd = 0
+    endInd   = 0
+
+    #print "BEGIN"
+    for i in range(startTok):
+        #print region[ind-4:ind] + '<' + region[ind] + '>' + region[ind+1:ind+5]
+        #print ind
+        startInd += len(dataWithEmpty[i])
+        while text[start+startInd].isspace(): startInd += 1
+        #print ind
+        #print
+
+    #print "END"
+    for i in range(endTok):
+        #print "TOK: ", i
+        #print dataWithEmpty[i]
+        #print len(dataWithEmpty[i])
+        endInd += len(dataWithEmpty[i])
+        while text[start+endInd].isspace(): endInd += 1
+
+    #print "endInd: ", endInd
+
+    #print "startInd: ", startInd
+
+    startOfTokRelToText = start + startInd
+
+    #print "ENDTOK: ", len(dataWithEmpty[endTok])
+
+    #endOfTokRelToText   = start + endInd + len(dataWithEmpty[endTok])
+
+    endOfTokRelToText = start + startInd + len(dataWithEmpty[startTok])
+
+    #print startOfTokRelToText
+    #print endOfTokRelToText
+
+    #print text[startOfTokRelToText:endOfTokRelToText+1]
+    #print text[startOfTokRelToText]
+    #print text[endOfTokRelToText]
+
+    return startOfTokRelToText,endOfTokRelToText
+
+"""
 
 
 def span_relationship(s1, s2):
