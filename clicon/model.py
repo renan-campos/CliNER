@@ -173,7 +173,6 @@ class Model:
 
         print '\textracting  features (pass one)'
 
-
         # Create object that is a wrapper for the features
         feat_obj = features.FeatureWrapper(data)
 
@@ -206,7 +205,20 @@ class Model:
         for flabel,fset,chunks,dvect,clf in zip(flabels, fsets, chunksets, dvects, clfs):
 
             if len(fset) == 0:
-                raise Exception('Training data must have %s training examples' % flabel)
+                 # no training data available. create dummy data.
+
+                 Y = ['None']
+                 X = [{'dummy':1}]
+
+                 X = dvect.fit_transform(X)
+                 vectorizers.append(dvect)
+
+                 clf  = sci.train(X, Y, do_grid)
+                 classifiers.append(clf)
+
+                 continue
+
+                #raise Exception('Training data must have %s training examples' % flabel)
 
             print '\tvectorizing features (pass one) ' + flabel
 

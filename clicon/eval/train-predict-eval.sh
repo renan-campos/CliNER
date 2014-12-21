@@ -2,16 +2,21 @@
 
 # Run this for end-to-end analysis of system
 
-TRAIN_FILES="00098-016139"
+#TRAIN_FILES="00098-016139"
 #TRAIN_FILES="*"
 #TRAIN_FILES="02115-010823"
+TRAIN_FILES="10907-103779"
 
 TEST_FILES="10101-012638"
 #TEST_FILES="*"
 
 # Train model
-#clicon train "$CLICON_DIR/data/semeval/train/txt/$TRAIN_FILES.text" --annotations "$CLICON_DIR/data/semeval/train/con/$TRAIN_FILES.pipe" --format semeval --third
+#echo "$CLICON_DIR/clicon/eval/text/$TRAIN_FILES.text"
+#echo "$CLICON_DIR/clicon/eval/clicon/$TRAIN_FILES.pipe"
+clicon train "$CLICON_DIR/clicon/eval/text/$TRAIN_FILES.text" --annotations "$CLICON_DIR/clicon/eval/gold/$TRAIN_FILES.pipe" --format semeval --third
 #clicon train "$CLICON_DIR/data/semeval/train/txt/$TRAIN_FILES.text" --annotations "$CLICON_DIR/data/semeval/train/con/$TRAIN_FILES.pipe" --format semeval
+
+exit
 
 # Gather evaluation data
 rm -f $CLICON_DIR/clicon/eval/run-data/gold/*

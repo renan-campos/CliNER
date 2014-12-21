@@ -21,7 +21,7 @@ from copy import copy
 import os.path
 
 
-from utilities_for_notes import concept_cmp, SentenceTokenizer, WordTokenizer, lno_and_tokspan__to__char_span
+from utilities_for_notes import concept_cmp, SentenceTokenizer, WordTokenizer, lno_and_tokspan__to__char_span, lineno_and_tokspan
 from abstract_note       import AbstractNote
 
 
@@ -232,29 +232,38 @@ class Note_semeval(AbstractNote):
                     classifications.append( (concept, span_inds) )
 
             # Safe guard against concept file having duplicate entries
-            #classifications = list(set(classifications))
             classifications = sorted(classifications, cmp=concept_cmp)
 
-            '''
-            # TODO - Atomize spans
-            # Atomize classification spans
-            # ex. "left and right atrial dilitation" from 02136-017465.text
-            classifs = reduce(lambda a,b: a+b,map(lambda t:t[1],classifications))
-            classifs = list(set(classifs))
-            classifs = sorted(classifs, key=lambda s:s[0])
-            print classifs
 
-            from utilities_for_notes import span_stuff
-            span_stuff(classifs)
+            # Hack: Throw away noncontiguous spans that cross line numbers
+            newClassifications = []
+            for classification in classifications:
+                concept,char_spans = classification
 
-            # Goal: Split overlaps
-            #print self.text[6111:6134], ' -> <s>'+self.text[6111:6116]+'</s> <s>'+self.text[6117:6134]+'</s>'
-            #print
-            #print self.text[6117:6134]
+                # Each span (could be noncontiguous span)
+                tok_spans = []
+                first_lineno = None
 
-            #print
-            exit()
-            '''
+                ignore = False
+                for span in char_spans:
+                    # character offset span --> lineno and list of token index spans
+                    lineno,tokspan = lineno_and_tokspan(self.line_inds, self.data, self.text, span)
+                    tok_spans.append(tokspan)
+
+                    # Ensure all noncontig spans are together on one line
+                    if first_lineno == None: first_lineno = lineno
+
+                    # Throw away noncontig spans that cross lines 
+                    if lineno != first_lineno:
+                        ignore = True
+
+                if not ignore:
+                    newClassifications.append(classification)
+
+            # Copy changes over
+            classifications = newClassifications
+
+
 
             # Hack: Throw away subsumed spans
             # ex. "left and right atrial dilitation" from 02136-017465.text
@@ -268,12 +277,12 @@ class Note_semeval(AbstractNote):
             newClassifications = []
             for c in classifications:
 
+                ignore = False
                 for span in c[1]:
-                    #print span
+                    #print '\t', span
                     
                     # Slow!
                     # Determine if any part of span is subsumed by other span
-                    ignore = False
                     for cand in classifs:
                         # Don't let identity spans mess up comparison
                         if span == cand: continue
@@ -281,6 +290,7 @@ class Note_semeval(AbstractNote):
                         # Is current span subsumed?
                         rel = span_relationship(span,cand)
                         if rel == 'subsumes':
+                            #print 'SUBSUMED!'
                             ignore = True
 
                 # Only add if no spans are subsumed by others
