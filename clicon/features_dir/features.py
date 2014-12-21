@@ -80,6 +80,13 @@ class FeatureWrapper:
 
     def extract_third_pass_features(self, chunks, inds):
 
+        """
+        print "called extract_third_pass_features"
+
+        print "inds in extract_third_pass_features:", inds
+        print "chunks in extract_third_pass_features:", chunks
+        """
+
         unvectorized_X = []
         for lineno,indices in enumerate(inds):
 
@@ -96,7 +103,20 @@ class FeatureWrapper:
                     # Positive or negative result for training
                     features.append(feats)
             '''
+
+            """
+            print "lineno, indices"
+            print lineno, indices
+
+            print "chunk[lineno]:", chunks[lineno]
+            print "indices:", indices
+            """
+
             features = self.feat_sent.third_pass_features(chunks[lineno],indices)
+
+            #print "features:", features
+
             unvectorized_X += features
 
+        #print "ret unvectorized_X:", unvectorized_X
         return unvectorized_X
