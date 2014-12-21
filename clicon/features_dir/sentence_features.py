@@ -346,6 +346,7 @@ class SentenceFeatures:
 
     def concept_features_for_sentence(self, sentence, chunk_inds):
 
+        #print "called concept_features_for_sentence"
         """
         concept_features()
 
@@ -355,11 +356,15 @@ class SentenceFeatures:
         """
 
 
+        #print "sentence in concept_features_for_sentence", sentence
+        #print "chunk_inds in concept_features_for_sentence:", chunk_inds
+
         # Get a feature set for each word in the sentence
         features_list = []
         for ind in chunk_inds:
             features_list.append( self.feat_word.concept_features_for_chunk(sentence,ind) )
 
+        #print "features_list after first for loop:", features_list
 
         # Allow for particular features to be enabled
         for feature in self.enabled_concept_features:
@@ -370,7 +375,7 @@ class SentenceFeatures:
                 for i in range(len(chunk_inds)):
                     features_list[i].update( umls_features[i] )
 
-
+        #print "returned features_list:", features_list
         return features_list
 
 
@@ -378,9 +383,24 @@ class SentenceFeatures:
 
     def third_pass_features(self, line, indices):
 
+     #   print indices
+     #   print line
+
+     #   for index in indices:
+     #       print line[index]
+
+        """
+        print "line: "
+        print line
+        print "indices: "
+        print indices
+        print "chunk: "
+        if len(indices):
+            print line[indices[0]]
+        """
         # Cannot have pairwise relationsips with either 0 or 1 objects
         if len(indices) < 2: 
-            return {}
+            return []
 
         features_list = []
 
@@ -388,9 +408,12 @@ class SentenceFeatures:
         for i in range(len(indices)):
             for j in range(i+1,len(indices)):
 
+#                print (indices[i],indices[j])
+
+         #       print indices[i], indices[j]
                 # Features of pair relationship
                 feats = {}
-
+                
                 # Feature: Left Unigrams
                 for tok in line[i].split():
                     tok = tok.lower()
@@ -405,11 +428,15 @@ class SentenceFeatures:
                 for tok in ' '.join(line[i+1:j]).split():
                     tok = tok.lower()
                     feats[('inner_unigram',tok)] = 1
-
+                
                 # Feature: Number of chunks between spans
                 feats[('span_dist',None)] = j - i
+               
+                
+         #       feats[('test_feat',None)] = str(indices[i])+str(indices[j])+line[indices[i]]+line[indices[j]]
 
                 # Add pair features to list of data points
                 features_list.append(feats)
-
+#        print features_list
+        #print features_list
         return features_list
