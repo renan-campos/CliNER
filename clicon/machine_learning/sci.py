@@ -16,10 +16,13 @@ class TrivialClassifier:
         return [ self.label for x in X ]
 
 
-
-def train(X, Y, do_grid):
+def train(X, Y, do_grid, default_label=0):
 
     # scikit-learn requires you train data with more than one label
+    if len(Y) == 0:
+        return TrivialClassifier(default_label)
+
+
     if len(Y) and all( [ (y==Y[0]) for y in Y ] ):
         return TrivialClassifier(Y[0])
 
