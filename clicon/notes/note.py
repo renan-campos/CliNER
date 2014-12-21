@@ -230,19 +230,24 @@ class Note:
             # Each span (could be noncontiguous span)
             tok_spans = []
             first_lineno = None
+
+            #print '-'*80
+
             for span in char_spans:
                 # character offset span --> lineno and list of token index spans
                 lineno,tokspan = lineno_and_tokspan(line_inds, data, text, span)
                 tok_spans.append(tokspan)
-                p = False #lineno == 93
+                p = False
                 if p: print
                 if p: print 'text-span: ', span
                 if p: print 'text: ', text[span[0]:span[1]]
                 if p: print 'lineno: ', lineno
                 if p: print 'first_lineno: ', first_lineno
+                #if p: exit()
 
                 # Ensure all noncontig spans are together on one line
                 if first_lineno == None: first_lineno = lineno
+                #print
                 #print lineno
                 #print first_lineno
                 assert (lineno == first_lineno)
@@ -278,7 +283,7 @@ class Note:
         data = self.derived_note.data
         text = self.derived_note.text
 
-        print '\n\n'+'/'*40+'\n\n'
+        #print '\n\n'+'/'*40+'\n\n'
 
         '''
         # Hack: Throw away subsumed spans

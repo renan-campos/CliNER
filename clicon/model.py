@@ -180,7 +180,6 @@ class Model:
 
         print '\textracting  features (pass one)'
 
-
         # Create object that is a wrapper for the features
         feat_obj = features.FeatureWrapper(data)
 
@@ -226,6 +225,7 @@ class Model:
                  classifiers.append(clf)
 
                  continue
+
 #                raise Exception('Training data must have {0} training examples'.format(flabel))
 
             print '\tvectorizing features (pass one) ' + flabel
