@@ -227,7 +227,11 @@ def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan):
         print region[jnd-4:jnd] + '<' + region[jnd] + '>' + region[jnd+1:jnd+5]
         print jnd
         jnd += len(dataWithEmpty[i])
-        while text[start+jnd].isspace(): jnd += 1
+        while text[start+jnd].isspace():
+            jnd += 1
+
+            if (start + jnd) > len(text) - 1:
+                break
         print jnd
         print
 
