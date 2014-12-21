@@ -230,7 +230,7 @@ def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan):
         while text[start+jnd].isspace():
             jnd += 1
 
-            if (start + jnd) > len(text) - 1:
+            if (start + jnd) == len(text) - 1:
                 break
         print jnd
         print
