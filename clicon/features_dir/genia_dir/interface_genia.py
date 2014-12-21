@@ -44,7 +44,6 @@ def genia(geniatagger, data):
         if not cache.has_key(sent):
             uncached.append(sent)
 
-
     if uncached:
         # write list to file and then feed it to GENIA
         genia_dir = os.path.dirname(geniatagger)
@@ -56,6 +55,7 @@ def genia(geniatagger, data):
         print '\t\tRunning  GENIA tagger'
         genia_dir = os.path.dirname(geniatagger)
         stream = getstatusoutput('cd %s ; ./geniatagger -nt %s' %(genia_dir,out))
+
         print '\t\tFinished GENIA tagger'
 
         # Organize tagger output
@@ -70,6 +70,7 @@ def genia(geniatagger, data):
 
         # Add tagger output to cache
         for line,tags in zip(uncached,tagged):
+
             cache.add_map(line,tags)
 
         # Remove temp file
