@@ -327,10 +327,14 @@ def obtain_concept_id(cache, phrase, filter, PyPwl=None):
 
         cuis = set()
 
-        normPhrases = []
+        # TODO: put into its own cache.
+        if cache.has_key(phrase + "--lvg"):
+            normPhrases = cache.get_map(phrase + "--lvg")
+        else:
+            # normalize with lvg
+            normPhrases = lvgNormalize(phrase)
+            cache.add_map(phrase + "--lvg", normPhrases)
 
-        # normalize with lvg
-        normPhrases = lvgNormalize(phrase)
 
         norm = ""
         for char in phrase:
