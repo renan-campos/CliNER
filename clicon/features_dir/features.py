@@ -100,13 +100,14 @@ class FeatureWrapper:
         print "chunks in extract_third_pass_features:", chunks
         """
 
-        fileLines = []
+        # not sure what this was used for but I do not see it used any where.
+        #fileLines = [] 
 
-        f = open("STANFORD_INPUT.txt", "w")
+        #f = open("STANFORD_INPUT.txt", "w")
 
-        for line in chunks:
+        #for line in chunks:
 
-            f.write(' '.join(line) + '\n')
+        #    f.write(' '.join(line) + '\n')
 
         unvectorized_X = []
         for lineno,indices in enumerate(inds):
