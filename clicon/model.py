@@ -156,10 +156,10 @@ class Model:
             # Train classifier (side effect - saved as object's member variable)
             print 'third pass'
 
-            print "pickling chunks"
-            chunkedDataFilePath = "/data1/kwacome/clicon_home/CliCon/CHUNKED_TRAINING_DATA/chunked_training_data.p"            
+            #print "pickling chunks"
+            #chunkedDataFilePath = "/data1/kwacome/clicon_home/CliCon/CHUNKED_TRAINING_DATA/chunked_training_data.p"            
 
-            pickle.dump( chunks, open( chunkedDataFilePath, "wb" ) )
+            #pickle.dump( chunks, open( chunkedDataFilePath, "wb" ) )
 
             self.third_train(chunks, classifications, inds, do_grid)
             """
