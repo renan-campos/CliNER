@@ -3,7 +3,7 @@ from subprocess import Popen, PIPE, STDOUT
 
 def lvgNormalize(string):
 
-    normAppPath = (os.environ["CLICON_DIR"] + "/clicon/lvg/lvg/bin/norm")
+    normAppPath = (os.environ["CLICON_DIR"] + "/clicon/normalization/lvg/lvg/bin/norm")
 
     process = Popen([normAppPath], stdout=PIPE, stdin=PIPE, stderr=PIPE)
     stdout_data = process.communicate(input=string)[0]
@@ -15,7 +15,7 @@ def lvgNormalize(string):
     stdout_data = stdout_data.split('\n')
 
     normalizedStrings = []
-
+#    print stdout_data
     # obtain the normalized versions of the string
     for line in stdout_data:
         normalizedStrings.append(line.split('|')[1])

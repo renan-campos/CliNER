@@ -8,6 +8,8 @@ class UmlsCache:
             self.filename = os.path.join( prefix, 'umls_tables/umls_cache' )
             self.cache = pickle.load( open( self.filename , "rb" ) ) ;
         except IOError:
+
+            print "NO CACHE"
             self.cache = {} 
     
     def has_key( self , string ): 

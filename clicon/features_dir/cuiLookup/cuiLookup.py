@@ -4,16 +4,14 @@ import os
 import imp
 import sys
 
-sys.path.append((os.environ["CLICON_DIR"] + "/clicon/features_dir/umls_dir"))
+#sys.path.append((os.environ["CLICON_DIR"] + "/clicon/features_dir/umls_dir"))
 
-from umls_cache import UmlsCache
+#from umls_cache import UmlsCache
 
-def getConceptId(phrase):
+def getConceptId(cache, phrase):
     """
     performs a cui lookup on a phrase using metamap java api.
     """
-
-    cache = UmlsCache()
 
     baseDirPath = os.environ["CLICON_DIR"]
 
@@ -32,8 +30,12 @@ def getConceptId(phrase):
     progArg = "gov.nih.nlm.nls.metamap.cuiLookup"
 
     if cache.has_key(phrase + "--metamap"):
+
+  #      print "HAS MAPPING!: ", phrase
         result = cache.get_map(phrase + "--metamap")
     else:
+
+ #       print "NO MAPPING!: ", phrase
 
         # get resulting output of lookup
         stdout = subprocess.check_output(["java", "-cp", cpArgs, progArg, phrase])
@@ -43,6 +45,7 @@ def getConceptId(phrase):
 
         cache.add_map(phrase + "--metamap", result)
 
+#    print "RESULTS: ", result
     return result
 
 def extractConceptIdsFromStdout(stdout):
@@ -90,6 +93,7 @@ def extractConceptIdsFromStdout(stdout):
                 # if a list is already assigned then append to concept id list.
                 results["concept_ids"].add(cui)
 
+    print results
     return results
 
 def lineIsPhrase(lineFromStdout):

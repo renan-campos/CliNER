@@ -176,8 +176,8 @@ def get_cuis_for_abr(cache, word):
 
 def get_tui( cache, cuiStr ):
     """ get tui of a cui """
-    if cache.has_key( cuiStr ):
-        tui = cache.get_map( cuiStr )
+    if cache.has_key( cuiStr + "--tui"):
+        tui = cache.get_map( cuiStr + "--tui")
     else:
         # list of singleton tuples
         tui = interface_umls.tui_lookup(cuiStr)
@@ -185,7 +185,7 @@ def get_tui( cache, cuiStr ):
         # change to list of strings
         tui = [semanticType[0] for semanticType in tui]
 
-        cache.add_map(cuiStr, tui)
+        cache.add_map(cuiStr + "--tui", tui)
 
     return tui
 
@@ -296,13 +296,21 @@ def obtain_concept_id(cache, phrase, filter, PyPwl=None):
     """
     perform a concept id lookup for a phrase of a certain tui
     """
+  #  print phrase
+    if cache.has_key(phrase + "___CUIS"):
+
+#        print "HAS KEY!"
+        return cache.get_map(phrase + "___CUIS")
+ #   else:
+  #      print "not in dict?"
+
 
     cuis = set()
 
     # NOTE: gotConceptId is very time consuming
     # sets are not indexable so convert for indexing.
     # getConceptId returns dictionary of the form {"text":"text argument", "concept_ids":Set([..])}
-    conceptIds = getConceptId(phrase)["concept_ids"]
+    conceptIds = getConceptId(cache, phrase)["concept_ids"]
 
 #    print "conceptIds from metamap: ", conceptIds
 
@@ -322,7 +330,7 @@ def obtain_concept_id(cache, phrase, filter, PyPwl=None):
         normPhrases = []
 
         # normalize with lvg
-        #normPhrases = lvgNormalize(phrase)
+        normPhrases = lvgNormalize(phrase)
 
         norm = ""
         for char in phrase:
@@ -331,6 +339,7 @@ def obtain_concept_id(cache, phrase, filter, PyPwl=None):
 
         # in some cases CASE does matter for abbreviations
         normPhrases.append( norm )
+        normPhrases.append( phrase )
 
         for normPhrase in normPhrases:
 
@@ -357,14 +366,16 @@ def obtain_concept_id(cache, phrase, filter, PyPwl=None):
 
             cuis = set()
 
-            phrase = spellCheck(phrase, PyPwl=PyPwl)
+            spellCorrectedPhrase = spellCheck(phrase, PyPwl=PyPwl)
 
-            conceptIds = getConceptId(phrase)["concept_ids"]
+            conceptIds = getConceptId(cache, spellCorrectedPhrase)["concept_ids"]
 
             if conceptIds is not None:
                 cuis = cuis.union(filter_cuis_by_tui(cache, list(conceptIds), filter=filter))
 
             conceptId = get_most_freq_cui(list(cuis))
+
+    cache.add_map(phrase + "___CUIS", conceptId)
 
     return conceptId
 
