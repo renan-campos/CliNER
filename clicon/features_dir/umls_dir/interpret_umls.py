@@ -292,7 +292,7 @@ def filter_cuis_by_tui(cache, cuis, filter=["T020", # acquired abnormality
 
     return list(results)
 
-def obtain_concept_id(cache, phrase, filter):
+def obtain_concept_id(cache, phrase, filter, PyPwl=None):
     """
     perform a concept id lookup for a phrase of a certain tui
     """
@@ -304,10 +304,16 @@ def obtain_concept_id(cache, phrase, filter):
     # getConceptId returns dictionary of the form {"text":"text argument", "concept_ids":Set([..])}
     conceptIds = getConceptId(phrase)["concept_ids"]
 
+#    print "conceptIds from metamap: ", conceptIds
+
     if conceptIds is not None:
         cuis = cuis.union(filter_cuis_by_tui(cache, list(conceptIds), filter=filter))
 
+#    print "cuis after filter:", cuis
+
     conceptId = get_most_freq_cui(list(cuis))
+
+#    print "most frequent conceptId:", conceptId
 
     if conceptId == "CUI-less":
 
@@ -351,7 +357,7 @@ def obtain_concept_id(cache, phrase, filter):
 
             cuis = set()
 
-            phrase = spellCheck(phrase)
+            phrase = spellCheck(phrase, PyPwl=PyPwl)
 
             conceptIds = getConceptId(phrase)["concept_ids"]
 

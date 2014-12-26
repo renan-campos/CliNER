@@ -109,6 +109,8 @@ class Model:
 
         if third:
 
+            print note.data
+
             # Set indicator to True
             self.is_third = True
 
@@ -153,6 +155,12 @@ class Model:
 
             # Train classifier (side effect - saved as object's member variable)
             print 'third pass'
+
+            print "pickling chunks"
+            chunkedDataFilePath = "/data1/kwacome/clicon_home/CliCon/CHUNKED_TRAINING_DATA/chunked_training_data.p"            
+
+            pickle.dump( chunks, open( chunkedDataFilePath, "wb" ) )
+
             self.third_train(chunks, classifications, inds, do_grid)
             """
             except:

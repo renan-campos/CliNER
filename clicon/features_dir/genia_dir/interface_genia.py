@@ -24,6 +24,8 @@ from genia_cache import GeniaCache
 
 def genia(geniatagger, data):
 
+ #   print "called genia"
+
     '''
     genia()
 
@@ -104,6 +106,7 @@ def genia(geniatagger, data):
         linefeats = []
 
 
+#    print retlist
     return retlist
 
 

@@ -80,12 +80,33 @@ class FeatureWrapper:
 
     def extract_third_pass_features(self, chunks, inds):
 
+#        for line, ind in zip(chunks, inds):
+
+#            for i in ind:
+
+#                print line[i]
+            #l = ' '.join(line)
+
+            #l += '\n'
+
+            #print l
+
+        #print chunks
+        #print inds
         """
         print "called extract_third_pass_features"
 
         print "inds in extract_third_pass_features:", inds
         print "chunks in extract_third_pass_features:", chunks
         """
+
+        fileLines = []
+
+        f = open("STANFORD_INPUT.txt", "w")
+
+        for line in chunks:
+
+            f.write(' '.join(line) + '\n')
 
         unvectorized_X = []
         for lineno,indices in enumerate(inds):

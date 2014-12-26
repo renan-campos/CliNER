@@ -18,6 +18,7 @@ import argparse
 import helper
 import re
 import string
+import time
 
 from model import Model
 from notes.note import Note
@@ -25,7 +26,9 @@ from notes.note import Note
 from features_dir.umls_dir.interpret_umls import obtain_concept_id
 
 sys.path.append((os.environ["CLICON_DIR"] + "/clicon/features_dir/umls_dir"))
+sys.path.append((os.environ["CLICON_DIR"] + "/clicon/normalization/spellCheck"))
 
+from spellChecker import getPWL
 from umls_cache import UmlsCache
 
 import itertools
@@ -87,9 +90,9 @@ def main():
 
 
     # Parse arguments
-#    files = glob.glob(args.input + "/*")
+    files = glob.glob(args.input + "/*")
 
-    files = glob.glob(args.input)
+#    files = glob.glob(args.input)
 
     #print files
 
@@ -122,16 +125,61 @@ def predict(files, model, output_dir, format, third=False):
         print >>sys.stderr, ''
         exit(1)
 
+    # personal world list. It is really big and takes a long time to load.
+    if format == "semeval":
+
+        # TODO: as of now the personal world list is EXTREMELY slow ( one file took around 15 minutes).
+        pwl = getPWL()
+
 #    file = open("predictError.log","w")
 
     # For each file, predict concept labels
     n = len(files)
     for i,txt in enumerate(sorted(files)):
 
+        """
+
+        initTime = time.time()
+
+        print i
+        print n
+
+        # -----------------------------------
+        print txt
+             
+        # pipe file to read contents of
+        fname = os.path.splitext(os.path.basename(txt))[0] + '.' + "pipe"
+        pipe_path = os.environ["CLICON_DIR"] + '/' + os.path.join(output_dir, fname)
+
+        print pipe_path
+
+        pipe_file = open(pipe_path, "r")
+
+        pipe_file_data = pipe_file.read()
+
+        output = taskB(pipe_file_data, txt, PyPwl=pwl)
+
+        pipe_file.close()
+
+        #print output
+        #print pipe_path
+
+        f = open(pipe_path, 'w')
+
+        f.write(output)
+
+        f.close()
+ 
+        print time.time() - initTime
+
+#        continue 
+        exit()
+
+        # -------------------------------------------
+        """
         # Read the data into a Note object
         note = Note(format)
         note.read(txt)
-
 
         print '-' * 30
         print '\n\t%d of %d' % (i+1,n)
@@ -160,9 +208,9 @@ def predict(files, model, output_dir, format, third=False):
         output = note.write(labels)
 
         # task B
-        #if format == "semeval":
-        #    # for the spans generated obtain concept ids of phrase
-        #     output = taskB(output, txt)
+#        if format == "semeval":
+            # for the spans generated obtain concept ids of phrase
+ #           output = taskB(output, txt, PyPwl=pwl)
 
         # Output the concept predictions
         print '\n\nwriting to: ', out_path
@@ -257,7 +305,7 @@ def testConceptLookup():
         pipeFile.write(newPipeText)
         pipeFile.close()
     
-def taskB(outputArg, txtFile):
+def taskB(outputArg, txtFile, PyPwl=None):
     """
     obtains concept ids for each phrase indicated by the span generated from prediction
     """
@@ -289,7 +337,13 @@ def taskB(outputArg, txtFile):
 
     cuisToInsert = []
 
+    if len(output[len(output)-1]) == 0:
+        output.pop()
     for index, line in enumerate(output):
+
+#        print len(output)
+#        print index
+#        print line
 
         line = line.split("||")
 
@@ -303,8 +357,13 @@ def taskB(outputArg, txtFile):
             phrase += string
 
         # concept Id of phrase
-        conceptId = obtain_concept_id(cache, phrase, filter)
+        #print "getting conceptId"
 
+        print phrase
+        conceptId = obtain_concept_id(cache, phrase, filter, PyPwl=PyPwl)
+
+        #print "got conceptID"
+        #print conceptId
         cuiToInsert = {}
 
         cuiToInsert["index"] = index

@@ -75,11 +75,11 @@ def main():
 
     # A list of text    file paths
     # A list of concept file paths
-#    txt_files = glob.glob(args.txt + "/*")
-#    con_files = glob.glob(args.con + "/*")
+    txt_files = glob.glob(args.txt + "/*")
+    con_files = glob.glob(args.con + "/*")
 
-    txt_files = glob.glob(args.txt)
-    con_files = glob.glob(args.con)
+#    txt_files = glob.glob(args.txt)
+#    con_files = glob.glob(args.con)
 
 
     # data format
@@ -140,9 +140,8 @@ def train(training_list, model_path, format, is_crf=True, grid=False, third=Fals
 
     # Task B
     if format == "semeval":
-        #calcFreqOfCuis(training_list)
+#        calcFreqOfCuis(training_list)
         pass
-
 
     # file names
     if not notes:

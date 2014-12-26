@@ -22,8 +22,6 @@ from wordshape import getWordShapes
 from read_config import enabled_modules
 
 
-
-
 # Import feature modules
 enabled = enabled_modules()
 if enabled['GENIA']:
@@ -34,8 +32,9 @@ if enabled['UMLS']:
 
 from word_features import WordFeatures
 
+from stanfordNLP import stanfordParse
 
-
+from stanfordNLP import dependency_cache
 
 class SentenceFeatures:
 
@@ -81,7 +80,7 @@ class SentenceFeatures:
         self.enabled_IOB_prose_sentence_features.append('GENIA')
         self.enabled_IOB_prose_sentence_features.append('UMLS')
 
-
+        self.dependencyCache = dependency_cache.DependencyCache()
 
 
     # IOB_prose_features()
@@ -378,16 +377,121 @@ class SentenceFeatures:
         #print "returned features_list:", features_list
         return features_list
 
+    def getDependencyPaths(self, line):
 
+        retVal = None
 
+        string = ' '.join(line)
+
+        if self.dependencyCache.has_key(string) is True:
+
+            retVal = self.dependencyCache.get_map(string)
+
+        else:
+
+            paths = stanfordParse.getDepenPaths(string)
+
+            self.dependencyCache.add_map(string, paths)
+
+            retVal = paths
+
+        return retVal
+
+    def getTypesOfRel(self, start, end, groupsOfPaths):
+        """
+        returns a list of list of tokens indicating the types of relations between
+
+        dependencies.
+        """
+        #print "called getTypesOfRel"
+
+#        print start,',', end
+
+        lOflOfRelations = []
+
+        lOflOfTokens = stanfordParse.followDependencyPath(start, end, groupsOfPaths)
+
+#        print "TOKENS:",lOflOfTokens
+
+ #       print "GROUPS OF PATHS:"
+ #       print groupsOfPaths
+ #       print "LIST OF LIST OF TOKENS:"
+ #       print lOflOfTokens
+
+        for l in lOflOfTokens:
+            # get relations from ordered token list
+            tmpL = [tok for tok in l if '__relation' in tok]
+
+            lOflOfRelations.append(tmpL)
+
+#        print "results:", lOflOfRelations
+
+        return lOflOfRelations
+
+    def getNumOfRel(self, start, end, groupOfPaths):
+        """ 
+        returns the number of relations between two tokens
+        """
+
+        lOflOfNumOfRelations = []
+
+        for lOfRelations in self.getTypesOfRel(start, end, groupsOfPaths):
+
+            lOflOfNumOfRelations.append(len(lOfRelations))
+
+        return lOflOfNumOfRelations
+
+    def geTokens(self, start, end, groupOfPaths):
+
+        lOflOfSpans = []
+
+        lOflOfTokens = stanfordParse.followDependencyPath(start, end, groupsOfPaths)
+
+        for l in lOflOfTokens:
+            # get spans from ordered token list
+            tmpL = [tok for tok in l if '__relation' not in tok]
+
+            lOflOfSpans.append(tmpL)
+
+        return lOflOfSpans
+
+    def getNumOfTokens(self, start, end, groupsOfPaths):
+
+        lOfNumOfTokens = []        
+
+        for l in self.geTokens(start, end, groupsOfPaths):
+
+            lOfNumOfTokens.append(len(l))
+
+        return lOfNumOfTokens
+
+    def getShortestPathRel(self, start, end, groupsOfPaths):
+
+        shortestRelPath = None
+
+        for l in self.getTypesOfRel(start, end, groupsOfPaths):
+            if shortestRelPath is None:
+                shortestRelPath = l
+
+            elif len(shortestRelPath) < len(l):
+                shortestRelPath = l
+
+        return shortestRelPath
+
+    def getShortestPathTok(self, start, end, groupsOfPaths):
+
+        shortestTokPath = None
+ 
+        for l in self.geTokens(groupsOfPaths):
+
+            if shortestTokPath is None:
+                shortestTokPath = l
+            elif len(shortestTokPath) < len(l):
+                shortestTokPath = l
+
+        return shortestTokPath
 
     def third_pass_features(self, line, indices):
-
-     #   print indices
-     #   print line
-
-     #   for index in indices:
-     #       print line[index]
 
         """
         print "line: "
@@ -398,15 +502,38 @@ class SentenceFeatures:
         if len(indices):
             print line[indices[0]]
         """
+
+        print "LINE:"
+        """
+        print line
+        print "INDICES:"
+        print indices
+        """
         # Cannot have pairwise relationsips with either 0 or 1 objects
         if len(indices) < 2: 
             return []
+
+        else:
+
+#            print "DEPEN PATHS:"
+            # get dependency paths for tokens in line.
+            groupsOfPaths = self.getDependencyPaths(line)
+
+#            print "groupsOfPaths:", groupsOfPaths
 
         features_list = []
 
         # Build (n choose 2) booleans
         for i in range(len(indices)):
             for j in range(i+1,len(indices)):
+
+#                start = line[indices[i]]
+#                end = line[indices[j]]
+
+#                print self.getTypesOfRel(start, end, groupsOfPaths)
+
+                
+                #print j
 
 #                print (indices[i],indices[j])
 
