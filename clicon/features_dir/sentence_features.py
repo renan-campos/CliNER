@@ -403,20 +403,10 @@ class SentenceFeatures:
 
         dependencies.
         """
-        #print "called getTypesOfRel"
-
-#        print start,',', end
 
         lOflOfRelations = []
 
         lOflOfTokens = stanfordParse.followDependencyPath(start, end, groupsOfPaths)
-
-#        print "TOKENS:",lOflOfTokens
-
- #       print "GROUPS OF PATHS:"
- #       print groupsOfPaths
- #       print "LIST OF LIST OF TOKENS:"
- #       print lOflOfTokens
 
         for l in lOflOfTokens:
             # get relations from ordered token list
@@ -424,24 +414,10 @@ class SentenceFeatures:
 
             lOflOfRelations.append(tmpL)
 
-#        print "results:", lOflOfRelations
+#        print lOflOfRelations
+        return self.getShortestList( lOflOfRelations )
 
-        return lOflOfRelations
-
-    def getNumOfRel(self, start, end, groupOfPaths):
-        """ 
-        returns the number of relations between two tokens
-        """
-
-        lOflOfNumOfRelations = []
-
-        for lOfRelations in self.getTypesOfRel(start, end, groupsOfPaths):
-
-            lOflOfNumOfRelations.append(len(lOfRelations))
-
-        return lOflOfNumOfRelations
-
-    def geTokens(self, start, end, groupOfPaths):
+    def getTokens(self, start, end, groupsOfPaths):
 
         lOflOfSpans = []
 
@@ -453,73 +429,35 @@ class SentenceFeatures:
 
             lOflOfSpans.append(tmpL)
 
-        return lOflOfSpans
+#        print lOflOfSpans
+        return self.getShortestList(lOflOfSpans)
 
-    def getNumOfTokens(self, start, end, groupsOfPaths):
-
-        lOfNumOfTokens = []        
-
-        for l in self.geTokens(start, end, groupsOfPaths):
-
-            lOfNumOfTokens.append(len(l))
-
-        return lOfNumOfTokens
-
-    def getShortestPathRel(self, start, end, groupsOfPaths):
-
-        shortestRelPath = None
-
-        for l in self.getTypesOfRel(start, end, groupsOfPaths):
-            if shortestRelPath is None:
-                shortestRelPath = l
-
-            elif len(shortestRelPath) < len(l):
-                shortestRelPath = l
-
-        return shortestRelPath
-
-    def getShortestPathTok(self, start, end, groupsOfPaths):
-
-        shortestTokPath = None
+    def getNumOfObjects(self, lOfObjects):
+        return len( lOfObjects )
  
-        for l in self.geTokens(groupsOfPaths):
+    def getShortestList(self, lOflOfl):
 
-            if shortestTokPath is None:
-                shortestTokPath = l
-            elif len(shortestTokPath) < len(l):
-                shortestTokPath = l
+        shortestL = []
+ 
+        for l in lOflOfl:
 
-        return shortestTokPath
+            if len(shortestL) is 0:
+                shortestL = l
+            elif len(l) < len(shortestL):
+                shortestL = l
+
+        return shortestL
 
     def third_pass_features(self, line, indices):
 
-        """
-        print "line: "
-        print line
-        print "indices: "
-        print indices
-        print "chunk: "
-        if len(indices):
-            print line[indices[0]]
-        """
-
-        print "LINE:"
-        """
-        print line
-        print "INDICES:"
-        print indices
-        """
         # Cannot have pairwise relationsips with either 0 or 1 objects
         if len(indices) < 2: 
             return []
 
         else:
 
-#            print "DEPEN PATHS:"
             # get dependency paths for tokens in line.
             groupsOfPaths = self.getDependencyPaths(line)
-
-#            print "groupsOfPaths:", groupsOfPaths
 
         features_list = []
 
@@ -527,20 +465,46 @@ class SentenceFeatures:
         for i in range(len(indices)):
             for j in range(i+1,len(indices)):
 
-#                start = line[indices[i]]
-#                end = line[indices[j]]
+                start = line[indices[i]]
+                end = line[indices[j]]
 
-#                print self.getTypesOfRel(start, end, groupsOfPaths)
-
-                
-                #print j
-
-#                print (indices[i],indices[j])
-
-         #       print indices[i], indices[j]
                 # Features of pair relationship
                 feats = {}
-                
+
+                """
+                print "LINE:"
+                print line
+                print "indices:"
+                print indices
+                print "START TOKEN:"
+                print "i: ", i
+                print start
+                print "END TOKEN:"
+                print "j: ", j
+                print end
+ 
+                print "RELATIONS BETWEEN DEPENDENCIES:"
+                """
+
+                lOflOfRels = self.getTypesOfRel(start, end, groupsOfPaths)
+
+                numOfRels = self.getNumOfObjects(lOflOfRels)
+
+#                print lOflOfRels
+
+                lOfTokes = self.getTokens(start, end, groupsOfPaths)
+
+                numOfTokes = self.getNumOfObjects( lOfTokes )
+
+#                print "TOKENS BETWEEN DEPENDENCIES:"
+#                print lOfTokes
+
+                feats[('toks_btwn_depen', tuple(lOfTokes))] = 1
+                feats[('rels_btwn_depen', tuple(lOflOfRels))] = 1
+                feats[('num_of_rels', numOfRels)] = 1
+                feats[('num_of_depen_tokes', numOfTokes)] = 1
+
+
                 # Feature: Left Unigrams
                 for tok in line[i].split():
                     tok = tok.lower()
@@ -558,12 +522,9 @@ class SentenceFeatures:
                 
                 # Feature: Number of chunks between spans
                 feats[('span_dist',None)] = j - i
-               
-                
-         #       feats[('test_feat',None)] = str(indices[i])+str(indices[j])+line[indices[i]]+line[indices[j]]
+              
 
                 # Add pair features to list of data points
                 features_list.append(feats)
-#        print features_list
-        #print features_list
+
         return features_list

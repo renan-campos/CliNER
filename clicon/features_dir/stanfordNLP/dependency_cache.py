@@ -5,12 +5,13 @@ cacheDirPath = (os.environ["CLICON_DIR"]  +  "/clicon/features_dir/stanfordNLP/"
 
 class DependencyCache:
     def __init__(self):
+        print "loading cache"
         try:
             self.filename = (cacheDirPath + '/dependency_cache')
             self.cache = pickle.load( open( self.filename , "rb" ) ) ;
         except IOError:
             self.cache = {}
-
+        print "finished loading"
     def has_key(self, key):
         return self.cache.has_key( str(key) )
 

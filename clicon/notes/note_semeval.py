@@ -135,6 +135,8 @@ class Note_semeval(AbstractNote):
         # Filename
         self.fileName = txt
 
+        print self.fileName
+
         start = 0
         end = 0
         with open(txt) as f:
@@ -213,18 +215,29 @@ class Note_semeval(AbstractNote):
             with open(con) as f:
                 for line in f:
 
+                    print line
+
                     # Empty line
                     if line == '\n': continue
 
                     # Parse concept file line
-                    fields = line.strip().split('||')
-                    #print fields
-                    concept = fields[1]
+                    fields = line.strip().split('|')
+                    print fields
+
                     cui     = fields[2]
                     span_inds = []
-                    for i in range(3,len(fields),2):
-                        span = int(fields[i]), int(fields[i+1])
-                        span_inds.append( span )
+
+                    spans = fields[1]
+                    spans = spans.split(',')
+                    spans = [s.split('-') for s in spans]
+
+                    for span in spans:
+                        span = int(span[0]), int(span[1])
+                        span_inds.append(span)
+
+                    #for i in range(3,len(fields),2):
+                    #    span = int(fields[i]), int(fields[i+1])
+                    #    span_inds.append( span )
 
                     # Everything is a Disease_Disorder
                     concept = 'problem'

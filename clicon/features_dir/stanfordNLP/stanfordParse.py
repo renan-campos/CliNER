@@ -81,9 +81,9 @@ def getCollapsedDepdencies(string):
 
     outputFromParser = parseString(string)
 
-    print outputFromParser
+#    print outputFromParser
 
-    exit()
+#    exit()
 
     dependencyGroups = getDependencyGroups(outputFromParser)
 
@@ -278,17 +278,12 @@ def hasKey(key, parentDict, followingPath=False):
 
     # TODO: could be a potential problem for larger sentences.
     if followingPath is True:
-        keys = [stripTokes(keyInDict) for keyInDict in parentDict.keys()]
-
-        for tok in keys:
-            if tok in key:
-                result = True
-#                return result
+        if keyInDict(key, parentDict) is True:
+            result = True
 
     else:
         if key in parentDict:
             result = True
-#            return result
 
     for key1 in parentDict:
 
@@ -296,6 +291,45 @@ def hasKey(key, parentDict, followingPath=False):
             result = result or hasKey(key, parentDict[key1], followingPath=followingPath)
 
     return result
+
+def keyInDict(key, dictionary):
+    """
+    used for determining if key is in dictionary.
+
+    this is done because stanford parser splits words at white space and removes
+    characters. This is done to relax the criteria for a key match.
+
+    TODO: analyze all keys in training data.
+    TODO: make more exhaustive?
+    """
+
+    retVal = False
+
+    # split at whitespace because stanford splits at white space
+    tokenizedKeys = key.split(' ')
+
+#    print "tokenizedKeys: ", tokenizedKeys
+#    print "keys in dict: ",dictionary.keys()
+
+    for k in tokenizedKeys:
+        if k in [stripTokes(keyInDict) for keyInDict in dictionary]:
+            retVal = True
+            break
+
+    """
+    if retVal is False:
+
+        normalizedKeys = []
+
+        for key in tokenizedKeys:
+
+        if key[-1] in string.punctuation:
+            normalizedKeys.append(key[0:-1])
+        else
+            normalizedKeys.append(key)
+    """
+    return retVal
+
 
 def stripTokes(string):
     # example: hello-4 -> hello, bingo-43 -> bingo, re-3d -> re-3d
@@ -370,21 +404,15 @@ def followDependencyPath(start, end, groupsOfPaths):
 
             tokens = [stripTokes(token) for token in tokens]
 
-      #      print tokens
-
             for token in tokens:
-                if token in start:
+                if token in start.split(' '):
                     indices.add(tokens.index(token))
                     break
 
             for token in tokens:
-                if token in end:
+                if token in end.split(' '):
                     indices.add(tokens.index(token))
                     break
-
-
-    #        print start, end
-    #        print indices
 
             indices = list(indices)
             if len(indices) == 2:
@@ -404,7 +432,7 @@ def getTokensInPath(key, parentDict, tokens):
 
     for k in [stripTokes(keyInDict) for keyInDict in parentDict]:
 
-        if k in key:
+        if k in key.split(' '):
 
             tokens.append(k)
 
@@ -469,12 +497,12 @@ def getDepenPaths(phrase):
 
 if __name__ == "__main__":
 
-     #phrase = ' '.join(['Lungs', ':', 'Clear', 'to', 'A', '+', 'P', 'CV', ':', 'RRR', 'without', 'R /', 'G /', 'M', 'Abd :', '+', 'BS', ',', 'soft', ',', 'nontender ,', 'without',
-     #'masses', 'or', 'hepatosplenomegaly', 'Chest', ':', 'wound', 'w', '/', 'purulent drainage ,', 'sternum', 'stable', '.'])
+    phrase = ' '.join(['Lungs', ':', 'Clear', 'to', 'A', '+', 'P', 'CV', ':', 'RRR', 'without', 'R /', 'G /', 'M', 'Abd :', '+', 'BS', ',', 'soft', ',', 'nontender ,', 'without',
+     'masses', 'or', 'hepatosplenomegaly', 'Chest', ':', 'wound', 'w', '/', 'purulent drainage ,', 'sternum', 'stable', '.'])
 
 #    phrase = 'On [ * * 01 - 14 * * ] she was readmitted to [ * * Hospital 1872 * * ] with fever , WBC , and purulent drainage from her sternal wound .\nHowdy, how are you all?\nMy favorite movie is Annie Hall.'
 
-    phrase = "hello, how are 5-- you doing today? I am doing very well. Goodbye"
+    # phrase = "hello, how are 5-- you doing today? I am doing very well. Goodbye"
 
 #    phrase = ['Her', 'wound', 'grew', 'out', 'MRSA', 'and', 'she', 'was', 'continued', 'on', 'Vancomycin', '.']
 
@@ -487,11 +515,11 @@ if __name__ == "__main__":
 
 #    phrase = " ".join(phrase)
 
-    print phrase.split(' ')
+    #print phrase.split(' ')
 
     depenPaths = getDepenPaths(phrase)
 
 #    print depenPaths
 #    print len(depenPaths)
 
-#    print followDependencyPath("wound", "MRSA", depenPaths)
+    print followDependencyPath("purulent", "drainage", depenPaths)

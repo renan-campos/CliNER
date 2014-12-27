@@ -10,6 +10,8 @@ umls_words_file_path = umls_spell_check_dir + "/umls_words.txt"
 
 def getPWL():
 
+#    print umls_words_file_path
+
     pwl = enchant.DictWithPWL(None, umls_words_file_path)
 
     return pwl
@@ -25,7 +27,7 @@ def spellCheck(string, strLen=0, PyPwl=None):
     """
 
     if PyPwl is None:
-        print "NOTE using personal word list"
+        print "NOT using personal word list"
         spellChecker = enchant.Dict("en_US")
 
     else:
