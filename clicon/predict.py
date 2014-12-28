@@ -128,8 +128,10 @@ def predict(files, model, output_dir, format, third=False):
     # personal world list. It is really big and takes a long time to load.
     if format == "semeval":
 
+        print "loading personal word list"
         # TODO: as of now the personal world list is EXTREMELY slow ( one file took around 15 minutes).
         pwl = getPWL()
+        print "finished loading pwl"
 
 #    file = open("predictError.log","w")
 
@@ -188,7 +190,9 @@ def predict(files, model, output_dir, format, third=False):
         #try:
 
             # Predict concept labels
+        print "predicting"
         labels = model.predict(note, third)
+        print "FINISHED PREDICTING"
         """
 	except:
             print "EXCEPTION!"
@@ -208,9 +212,9 @@ def predict(files, model, output_dir, format, third=False):
         output = note.write(labels)
 
         # task B
-#        if format == "semeval":
+        if format == "semeval":
             # for the spans generated obtain concept ids of phrase
- #           output = taskB(output, txt, PyPwl=pwl)
+            output = taskB(output, txt, PyPwl=pwl)
 
         # Output the concept predictions
         print '\n\nwriting to: ', out_path
@@ -345,12 +349,16 @@ def taskB(outputArg, txtFile, PyPwl=None):
 #        print index
 #        print line
 
-        line = line.split("||")
+        line = line.split("|")
 
         phrase = ""
 
+        spans = line[1]
+        spans = spans.split(',')
+        spans = [s.split('-') for s in spans]
+        
         # get the phrase  for each span
-        for span in pairwise(line[3:]):
+        for span in spans:
 
             string = txtFile[int(span[0]):int(span[1])+1]
 
@@ -359,7 +367,7 @@ def taskB(outputArg, txtFile, PyPwl=None):
         # concept Id of phrase
         #print "getting conceptId"
 
-        print phrase
+#        print phrase
         conceptId = obtain_concept_id(cache, phrase, filter, PyPwl=PyPwl)
 
         #print "got conceptID"

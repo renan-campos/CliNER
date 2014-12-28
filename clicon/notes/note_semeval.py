@@ -215,14 +215,14 @@ class Note_semeval(AbstractNote):
             with open(con) as f:
                 for line in f:
 
-                    print line
+                    #print line
 
                     # Empty line
                     if line == '\n': continue
 
                     # Parse concept file line
                     fields = line.strip().split('|')
-                    print fields
+                    #print fields
 
                     cui     = fields[2]
                     span_inds = []
@@ -360,12 +360,21 @@ class Note_semeval(AbstractNote):
         # Build output string
         retStr = ''
 
+        # system only covers semeval task 1.
+        defaultDisorderSlots = '|no|null|patient|null|no|null|unmarked|null|unmarked|null|false|null|false|null|NULL|null'
+
         # For each classification, format to semeval style
         for concept,span_inds in classifications:
-            retStr += self.fileName + '||%s||CUI-less' % concept
-            for span in span_inds:
-                retStr += '||' + str(span[0]) + "||" +  str(span[1])
-            retStr += '\n'
+
+            spansAsStr = ",".join([str(span[0]) + '-' + str(span[1]) for span in span_inds])
+
+            outputLine = "{0}|{1}|{2}".format(self.fileName, spansAsStr, 'CUI-less')
+
+            outputLine += defaultDisorderSlots
+            #retStr += self.fileName + '||%s||CUI-less' % concept
+            #for span in span_inds:
+            #    retStr += '||' + str(span[0]) + "||" +  str(span[1])
+            retStr += (outputLine + '\n')
 
         return retStr
  

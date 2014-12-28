@@ -449,7 +449,7 @@ class SentenceFeatures:
         return shortestL
 
     def third_pass_features(self, line, indices):
-
+        print "third_pass_features called"
         # Cannot have pairwise relationsips with either 0 or 1 objects
         if len(indices) < 2: 
             return []
@@ -486,9 +486,9 @@ class SentenceFeatures:
                 print "RELATIONS BETWEEN DEPENDENCIES:"
                 """
 
-                lOflOfRels = self.getTypesOfRel(start, end, groupsOfPaths)
+                lOfRels = self.getTypesOfRel(start, end, groupsOfPaths)
 
-                numOfRels = self.getNumOfObjects(lOflOfRels)
+                numOfRels = self.getNumOfObjects(lOfRels)
 
 #                print lOflOfRels
 
@@ -499,11 +499,18 @@ class SentenceFeatures:
 #                print "TOKENS BETWEEN DEPENDENCIES:"
 #                print lOfTokes
 
-                feats[('toks_btwn_depen', tuple(lOfTokes))] = 1
-                feats[('rels_btwn_depen', tuple(lOflOfRels))] = 1
-                feats[('num_of_rels', numOfRels)] = 1
-                feats[('num_of_depen_tokes', numOfTokes)] = 1
+                for tokeIndex, _ in enumerate(lOfTokes):
+                    if tokeIndex != (len(lOfTokes) - 1):
+#                        print (lOfTokes[i], lOfTokes[i+1])
+                        feats[('toks_btwn_depen', (lOfTokes[tokeIndex], lOfTokes[tokeIndex+1]))] = 1
+                    else:
+                        break
 
+                for rel in lOfRels:
+                    feats[('rels_btwn_depen', rel)] = 1
+
+                feats[('num_of_rels', None)] = numOfRels
+                feats[('num_of_depen_tokes', None)] = (numOfTokes - 2 if numOfTokes != 0 else numOfTokes)
 
                 # Feature: Left Unigrams
                 for tok in line[i].split():

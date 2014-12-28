@@ -18,7 +18,7 @@ class DependencyCache:
     def add_map(self, key, value):
         self.cache[ str(key) ] = value
 
-        pickle.dump( self.cache, open( self.filename, "wb" ) )
+#        pickle.dump( self.cache, open( self.filename, "wb" ) )
 
     def get_map(self, key):
         return self.cache[ str(key) ]

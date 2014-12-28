@@ -224,16 +224,16 @@ def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan):
     # The ending character index will be stored in 'jnd'
     jnd = ind
     for i in range(startTok,endTok+1):
-        print region[jnd-4:jnd] + '<' + region[jnd] + '>' + region[jnd+1:jnd+5]
-        print jnd
+        #print region[jnd-4:jnd] + '<' + region[jnd] + '>' + region[jnd+1:jnd+5]
+        #print jnd
         jnd += len(dataWithEmpty[i])
         while text[start+jnd].isspace():
             jnd += 1
 
             if (start + jnd) == len(text) - 1:
                 break
-        print jnd
-        print
+        #print jnd
+        #print
 
     while (text[start+jnd-1].isspace()) or (text[start+jnd-1] in string.punctuation): jnd -= 1
 
