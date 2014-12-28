@@ -14,13 +14,13 @@ __date__   = 'Apr. 27, 2014'
 
 import nltk
 import re
+import sys
+import os
+
 from wordshape import getWordShapes
-
-
 
 # What modules are available
 from read_config import enabled_modules
-
 
 # Import feature modules
 enabled = enabled_modules()
@@ -31,10 +31,13 @@ if enabled['UMLS']:
     from umls_dir.umls_features import UMLSFeatures
 
 from word_features import WordFeatures
-
 from stanfordNLP import stanfordParse
-
 from stanfordNLP import dependency_cache
+from umls_dir import interface_umls
+
+sys.path.append((os.environ["CLICON_DIR"] + "/clicon/normalization/spellCheck"))
+
+from spellChecker import getPWL
 
 class SentenceFeatures:
 
@@ -81,7 +84,7 @@ class SentenceFeatures:
         self.enabled_IOB_prose_sentence_features.append('UMLS')
 
         self.dependencyCache = dependency_cache.DependencyCache()
-
+        self.pwl = getPWL()
 
     # IOB_prose_features()
     #
@@ -511,6 +514,8 @@ class SentenceFeatures:
 
                 feats[('num_of_rels', None)] = numOfRels
                 feats[('num_of_depen_tokes', None)] = (numOfTokes - 2 if numOfTokes != 0 else numOfTokes)
+
+                feats[("tokes_that_exists_in_umls_db",None)] = interface_umls.substrs_that_exists([start, end], self.pwl)
 
                 # Feature: Left Unigrams
                 for tok in line[i].split():

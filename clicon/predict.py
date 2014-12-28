@@ -127,11 +127,7 @@ def predict(files, model, output_dir, format, third=False):
 
     # personal world list. It is really big and takes a long time to load.
     if format == "semeval":
-
-        print "loading personal word list"
-        # TODO: as of now the personal world list is EXTREMELY slow ( one file took around 15 minutes).
         pwl = getPWL()
-        print "finished loading pwl"
 
 #    file = open("predictError.log","w")
 

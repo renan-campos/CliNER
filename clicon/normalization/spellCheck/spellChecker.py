@@ -12,7 +12,9 @@ def getPWL():
 
 #    print umls_words_file_path
 
+    print "loading personal word list"
     pwl = enchant.DictWithPWL(None, umls_words_file_path)
+    print "finished loading pwl"
 
     return pwl
 
@@ -45,7 +47,7 @@ def spellCheck(string, strLen=0, PyPwl=None):
 
              try:
                  suggestions = spellChecker.suggest(token)
-                 suggestions = difflib.get_close_matches(token, suggestions)
+                 suggestions = difflib.get_close_matches(token, suggestions, cutoff=.8)
 
              except:
                  suggestions = []

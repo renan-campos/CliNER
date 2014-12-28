@@ -11,9 +11,13 @@ import create_sqliteDB
 import os 
 
 import create_trie
+import difflib
+import string
+import sys
 
+sys.path.append((os.environ["CLICON_DIR"] + "/clicon/normalization/spellCheck"))
 
-
+from spellChecker import spellCheck
 
 ############################################
 ###          Setups / Handshakes         ###
@@ -90,6 +94,47 @@ def tui_lookup( string ):
     except sqlite3.ProgrammingError, e:
         return []
 
-def concept_exists(string):
+def substrs_that_exists( lOfStrs , pwl):
+    """ sees if a sub string exists within trie"""
+
+    lOfNormStrs = [string.strip() for string in lOfStrs]
+    lOfNormStrs = [strip_punct(string) for string in lOfNormStrs]
+    lOfNormStrs = [( string, string.lower() ) for string in lOfNormStrs]
+
+    retVal = False
+
+    numThatExist = 0
+
+    # strings are case sensitive.
+    for normStr1, normStr2 in lOfNormStrs:
+
+        strs = difflib.get_close_matches(normStr1, trie.keys( unicode( normStr1 ) ), cutoff=.8)
+        if len(strs) == 0:
+            if normStr2 != normStr1:
+                strs = difflib.get_close_matches(normStr2, trie.keys( unicode( normStr2 ) ), cutoff=.8)
+            if len(strs) == 0:
+
+                spellChecked = spellCheck(normStr1, PyPwl=pwl)
+                strs = difflib.get_close_matches(spellChecked, trie.keys( unicode( spellChecked ) ), cutoff=.8)
+
+            if len(strs) == 0:                               
+                spellChecked = spellCheck(normStr2, PyPwl=pwl)
+                strs = difflib.get_close_matches(spellChecked, trie.keys( unicode( spellChecked ) ), cutoff=.8)
+
+
+        if len(strs) > 0:
+            numThatExist += 1
+
+    return numThatExist
+
+def strip_punct(stringArg):
+
+    for c in string.punctuation:
+        stringArg = string.replace(stringArg, c, "")
+
+    return stringArg
+
+def concept_exists( string ):
     """ Fast query for set membership in trie """
+    print string
     return string in trie
