@@ -34,12 +34,6 @@ from umls_cache import UmlsCache
 import itertools
 import cPickle as pickle
 
-def pairwise(iterable):
-    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
-    a, b = itertools.tee(iterable)
-    next(b, None)
-    return itertools.izip(a, b)
-
 def main():
 
     parser = argparse.ArgumentParser()
@@ -80,21 +74,10 @@ def main():
         help = "A flag indicating whether to have third/clustering pass",
         action = "store_true"
     )
-    #print "testing concept id lookup"
-
-    #testConceptLookup()
-
-    #return
 
     args = parser.parse_args()
 
-
-    # Parse arguments
-    files = glob.glob(args.input + "/*")
-
-#    files = glob.glob(args.input)
-
-    #print files
+    files = glob.glob(args.input)
 
     helper.mkpath(args.output)
     format = args.format
@@ -124,80 +107,20 @@ def predict(files, model, output_dir, format, third=False):
         print >>sys.stderr,   '\tAvailable formats: ', ' | '.join(Note.supportedFormats())
         print >>sys.stderr, ''
         exit(1)
-
-    # personal world list. It is really big and takes a long time to load.
-    if format == "semeval":
-        pwl = getPWL()
-
-#    file = open("predictError.log","w")
-
+   
     # For each file, predict concept labels
     n = len(files)
     for i,txt in enumerate(sorted(files)):
 
-        """
-
-        initTime = time.time()
-
-        print i
-        print n
-
-        # -----------------------------------
-        print txt
-             
-        # pipe file to read contents of
-        fname = os.path.splitext(os.path.basename(txt))[0] + '.' + "pipe"
-        pipe_path = os.environ["CLICON_DIR"] + '/' + os.path.join(output_dir, fname)
-
-        print pipe_path
-
-        pipe_file = open(pipe_path, "r")
-
-        pipe_file_data = pipe_file.read()
-
-        output = taskB(pipe_file_data, txt, PyPwl=pwl)
-
-        pipe_file.close()
-
-        #print output
-        #print pipe_path
-
-        f = open(pipe_path, 'w')
-
-        f.write(output)
-
-        f.close()
- 
-        print time.time() - initTime
-
-#        continue 
-        exit()
-
-        # -------------------------------------------
-        """
         # Read the data into a Note object
         note = Note(format)
         note.read(txt)
-
-        print '-' * 30
-        print '\n\t%d of %d' % (i+1,n)
-        print '\t', txt, '\n'
-
-        #try:
-
-            # Predict concept labels
+       
+        # Predict concept labels
         print "predicting"
         labels = model.predict(note, third)
         print "FINISHED PREDICTING"
-        """
-	except:
-            print "EXCEPTION!"
-	    file.write("Exception: ")
-	    file.write(str(sys.exc_info()))
-	    file.write('\n')
-	    file.write("File: " + note.txtPath + '\n')
-            continue
-        """
+        
         # Output file
         extension = note.getExtension()
         fname = os.path.splitext(os.path.basename(txt))[0] + '.' + extension
@@ -210,7 +133,7 @@ def predict(files, model, output_dir, format, third=False):
         # task B
         if format == "semeval":
             # for the spans generated obtain concept ids of phrase
-            output = taskB(output, txt, PyPwl=pwl)
+            output = taskB(output, txt)
 
         # Output the concept predictions
         print '\n\nwriting to: ', out_path
@@ -218,98 +141,12 @@ def predict(files, model, output_dir, format, third=False):
             print >>f, output
         print
 
-    #file.close()
-
-
-def testConceptLookup():
-    """
-    test how well concept id lookup performs
-
-    NOTE: can be deleted.
-    """
-
-    cache = UmlsCache()    
-
-    filter = ["T020", # acquired abnormality
-                                         "T190", # Anatomical Abnormality
-                                         "T049", # Cell or Molecular Dysfunction
-                                         "T019", # Congenital Abnormality
-                                         "T047", # Disease or Syndrome
-                                         "T050", # Experimental Model of Disease
-                                         "T033", # Finding
-                                         "T037", # Injury or Poisoning
-                                         "T048", # Mental or Behavioral Dysfunction
-                                         "T191", # Neoplastic Process
-                                         "T046", # Pathologic Function
-                                         "T184"]
-
-    pipeFilePaths = glob.glob("../../clicon_home/test/train/pipe/*")
-
-    for fileNum, pipeFilePath in enumerate(pipeFilePaths):
-
-        print fileNum
-        print pipeFilePath
-
-        textFilePath = re.sub(r"\.pipe", ".text", pipeFilePath)
-        textFilePath = re.sub(r"(?<=/)pipe", "text", textFilePath)
-
-        textFile = open(textFilePath, "r")
-        textFileTxt = textFile.read()
-        textFile.close()
-
-        pipeFile = open(pipeFilePath, "r")
-        pipeFileTxt = pipeFile.read()
-        pipeFile.close()
-
-        linesInPipeFileTxt = pipeFileTxt[:-1].split('\n')
-        
-        cuis = []
-
-        newPipeText = []
-
-        for line in linesInPipeFileTxt:
-            line = line.split('||')
-
-            phrase = ""
-
-            # get the phrase  for each span
-            for span in pairwise(line[3:]):
-
-                string = textFileTxt[int(span[0]):int(span[1])+1]
-
-                phrase += string
-
-            cui = obtain_concept_id(cache, phrase, filter)
-
-            if cui != line[2]:
-                print "\n"
-                print "gold standard cui: "
-                print line[2]
-
-                print "cui found: "
-                print cui
-
-                print "phrase: "
-                print phrase
-                print "\n"
-
-            line[2] = cui
-
-            newPipeText.append("||".join(line))
-
-        newPipeText += [""]
-
-        newPipeText = "\n".join(newPipeText)
-            
-        pipeFile = open(pipeFilePath, "wb")
-        pipeFile.write(newPipeText)
-        pipeFile.close()
-    
-def taskB(outputArg, txtFile, PyPwl=None):
+def taskB(outputArg, txtFile):
     """
     obtains concept ids for each phrase indicated by the span generated from prediction
     """
 
+    pwl = getPWL()
     cache = UmlsCache()
 
     filter = ["T020", # acquired abnormality
@@ -329,27 +166,16 @@ def taskB(outputArg, txtFile, PyPwl=None):
 
     txtFile = txtFile.read()
 
-    # remove end new line since it is junk.
-    output = outputArg[:-1]
-
     # turn output into a list of strings.
-    output = output.split('\n')
+    output = outputArg.split('\n')
 
     cuisToInsert = []
 
-    if len(output[len(output)-1]) == 0:
-        output.pop()
     for index, line in enumerate(output):
-
-#        print len(output)
-#        print index
-#        print line
-
-        line = line.split("|")
 
         phrase = ""
 
-        spans = line[1]
+        spans = line.split("|")[1]
         spans = spans.split(',')
         spans = [s.split('-') for s in spans]
         
@@ -360,14 +186,8 @@ def taskB(outputArg, txtFile, PyPwl=None):
 
             phrase += string
 
-        # concept Id of phrase
-        #print "getting conceptId"
+        conceptId = obtain_concept_id(cache, phrase, filter, PyPwl=pwl)
 
-#        print phrase
-        conceptId = obtain_concept_id(cache, phrase, filter, PyPwl=PyPwl)
-
-        #print "got conceptID"
-        #print conceptId
         cuiToInsert = {}
 
         cuiToInsert["index"] = index
@@ -382,9 +202,6 @@ def taskB(outputArg, txtFile, PyPwl=None):
         string = re.sub("CUI-less", cuiToInsert["cui"], string)
 
         output[cuiToInsert["index"]] = string
-
-    # gets end new line back when hoining
-    output += [""]
 
     resultingOutput = "\n".join(output)
 

@@ -235,6 +235,8 @@ class Note_semeval(AbstractNote):
                         span = int(span[0]), int(span[1])
                         span_inds.append(span)
 
+                    print span_inds
+
                     #for i in range(3,len(fields),2):
                     #    span = int(fields[i]), int(fields[i+1])
                     #    span_inds.append( span )
@@ -376,5 +378,5 @@ class Note_semeval(AbstractNote):
             #    retStr += '||' + str(span[0]) + "||" +  str(span[1])
             retStr += (outputLine + '\n')
 
-        return retStr
- 
+        return retStr[0:-1]
+
