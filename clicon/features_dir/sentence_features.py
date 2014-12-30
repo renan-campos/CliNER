@@ -518,22 +518,22 @@ class SentenceFeatures:
                 feats[("tokes_that_exists_in_umls_db",None)] = interface_umls.substrs_that_exists([start, end], self.pwl)
 
                 # Feature: Left Unigrams
-                for tok in line[i].split():
+                for tok in line[indices[i]].split():
                     tok = tok.lower()
                     feats[('left_unigram' ,tok)] = 1
 
                 # Feature: Right Unigrams
-                for tok in line[j].split():
+                for tok in line[indices[j]].split():
                     tok = tok.lower()
                     feats[('right_unigram',tok)] = 1
 
                 # Feature: Unigrams between spans
-                for tok in ' '.join(line[i+1:j]).split():
+                for tok in ' '.join(line[indices[i+1]:indices[j]]).split():
                     tok = tok.lower()
                     feats[('inner_unigram',tok)] = 1
                 
                 # Feature: Number of chunks between spans
-                feats[('span_dist',None)] = j - i
+                feats[('span_dist',None)] = len(line[indices[i+1]:indices[j]])
               
 
                 # Add pair features to list of data points
