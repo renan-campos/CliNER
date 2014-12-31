@@ -101,6 +101,11 @@ def main():
 
 def predict(files, model, output_dir, format, third=False):
 
+    if format == "semeval":
+        pwl = getPWL()
+        umls = UmlsCache()
+
+
     # Must specify output format
     if format not in Note.supportedFormats():
         print >>sys.stderr, '\n\tError: Must specify output format'
@@ -133,7 +138,7 @@ def predict(files, model, output_dir, format, third=False):
         # task B
         if format == "semeval":
             # for the spans generated obtain concept ids of phrase
-            output = taskB(output, txt)
+            output = taskB(output, txt, umls, pwl)
 
         # Output the concept predictions
         print '\n\nwriting to: ', out_path
@@ -141,13 +146,10 @@ def predict(files, model, output_dir, format, third=False):
             print >>f, output
         print
 
-def taskB(outputArg, txtFile):
+def taskB(outputArg, txtFile, cache, pwl):
     """
     obtains concept ids for each phrase indicated by the span generated from prediction
     """
-
-    pwl = getPWL()
-    cache = UmlsCache()
 
     filter = ["T020", # acquired abnormality
               "T190", # Anatomical Abnormality
@@ -174,8 +176,14 @@ def taskB(outputArg, txtFile):
     for index, line in enumerate(output):
 
         phrase = ""
+        spans = line.split("|")
 
-        spans = line.split("|")[1]
+        if len(spans) != 19:
+            print "INCORRECT LENGTH!!!!!!"
+            print line
+            continue
+
+        spans = spans[1]
         spans = spans.split(',')
         spans = [s.split('-') for s in spans]
         

@@ -49,7 +49,7 @@ class SentenceFeatures:
 
 
     # Instantiate an Sentence object
-    def __init__(self, data):
+    def __init__(self, data, third=False):
 
         # Word-level features module
         self.feat_word = WordFeatures()
@@ -83,8 +83,9 @@ class SentenceFeatures:
         self.enabled_IOB_prose_sentence_features.append('GENIA')
         self.enabled_IOB_prose_sentence_features.append('UMLS')
 
-        self.dependencyCache = dependency_cache.DependencyCache()
-        self.pwl = getPWL()
+        if third is True:
+            self.dependencyCache = dependency_cache.DependencyCache()
+            self.pwl = getPWL()
 
     # IOB_prose_features()
     #
@@ -356,7 +357,7 @@ class SentenceFeatures:
         @param  chunk_inds. A list of indices for non-None-labeled chunks
         @return             A list of feature dictionaries
         """
-
+        print "called concept_features_for_sentence"
 
         #print "sentence in concept_features_for_sentence", sentence
         #print "chunk_inds in concept_features_for_sentence:", chunk_inds

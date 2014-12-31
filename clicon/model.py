@@ -99,8 +99,6 @@ class Model:
         print 'second pass'
         self.second_train(data2, inds, Y2, do_grid)
 
-
-
         ##############
         # Third pass #
         ##############
@@ -439,9 +437,6 @@ class Model:
         # Predict concept labels
         classifications = self.second_predict(chunks,inds)
 
-        #print classifications
-        #exit()
-
         ##############
         # Third pass #
         ##############
@@ -587,20 +582,15 @@ class Model:
         X = [ feat_o.concept_features(s,inds) for s,inds in zip(data,inds_list) ]
         X = reduce(concat, X)
 
-
         print '\tvectorizing features (pass two)'
-
 
         # Vectorize features
         X = self.second_vec.transform(X)
 
-
         print '\tpredicting    labels (pass two)'
-
 
         # Predict concept labels
         out = sci.predict(self.second_clf, X)
-
 
         # Line-by-line processing
         o = list(out)
@@ -638,7 +628,7 @@ class Model:
         print '\textracting  features (pass three)'
 
         # Create object that is a wrapper for the features
-        feat_obj = features.FeatureWrapper()
+        feat_obj = features.FeatureWrapper(third=True)
 
         # Extract features between pairs of chunks
         unvectorized_X = feat_obj.extract_third_pass_features(chunks, inds)

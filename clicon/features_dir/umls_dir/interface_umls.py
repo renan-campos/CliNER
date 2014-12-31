@@ -136,5 +136,4 @@ def strip_punct(stringArg):
 
 def concept_exists( string ):
     """ Fast query for set membership in trie """
-    print string
     return string in trie

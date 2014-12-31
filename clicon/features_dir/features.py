@@ -28,10 +28,10 @@ class FeatureWrapper:
 
 
     # Instantiate an FeatureWrapper object
-    def __init__(self, data=None):
+    def __init__(self, data=None, third=False):
 
         # Sentence-level features
-        self.feat_sent = SentenceFeatures(data)
+        self.feat_sent = SentenceFeatures(data, third=third)
 
 
 
@@ -133,6 +133,9 @@ class FeatureWrapper:
             print "chunk[lineno]:", chunks[lineno]
             print "indices:", indices
             """
+
+#            print lineno
+#            print len(chunks)
 
             features = self.feat_sent.third_pass_features(chunks[lineno],indices)
 
