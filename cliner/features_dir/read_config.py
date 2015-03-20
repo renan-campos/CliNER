@@ -11,6 +11,8 @@
 
 import os
 
+import globals_cliner
+
 
 
 #
@@ -46,4 +48,4 @@ def enabled_modules():
 
 
 # Read from config file when module is imported
-print enabled_modules()
+if globals_cliner.verbosity > 0: print enabled_modules()

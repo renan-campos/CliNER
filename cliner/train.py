@@ -22,7 +22,7 @@ import helper
 from sets import Set
 from model import Model
 from notes.note import Note
-
+import globals_cliner
 
 def main():
     parser = argparse.ArgumentParser()
@@ -97,7 +97,7 @@ def main():
 
 
     # display file names (for user to see data was properly located)
-    print '\n', training_list, '\n'
+    if globals_cliner.verbosity > 0: print '\n', training_list, '\n'
 
 
     # Train the model
@@ -130,7 +130,7 @@ def train(training_list, model_path, format, is_crf=True, grid=False):
 
 
     # Pickle dump
-    print 'pickle dump'
+    if globals_cliner.verbosity > 0: print 'pickle dump'
     with open(model_path, "wb") as m_file:
         pickle.dump(model, m_file)
 

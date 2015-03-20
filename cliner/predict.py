@@ -19,7 +19,7 @@ import helper
 
 from model import Model
 from notes.note import Note
-
+import globals_cliner
 
 def main():
 
@@ -100,9 +100,9 @@ def predict(files, model_path, output_dir, format):
         note.read(txt)
 
 
-        print '-' * 30
-        print '\n\t%d of %d' % (i+1,n)
-        print '\t', txt, '\n'
+        if globals_cliner.verbosity > 1: print '-' * 30
+        if globals_cliner.verbosity > 1: print '\n\t%d of %d' % (i+1,n)
+        if globals_cliner.verbosity > 1: print '\t', txt, '\n'
 
 
         # Predict concept labels
@@ -119,7 +119,7 @@ def predict(files, model_path, output_dir, format):
         out_path = os.path.join(output_dir, fname)
 
         # Output the concept predictions
-        print '\n\nwriting to: ', out_path
+        if globals_cliner.verbosity > 0: print '\n\nwriting to: ', out_path
         with open(out_path, 'w') as f:
             print >>f, output
         print
