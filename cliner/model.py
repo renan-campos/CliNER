@@ -59,23 +59,20 @@ class Model:
         # First pass #
         ##############
 
-        # Get the data and annotations from the Note objects
-        text    = [  note.getTokenizedSentences()  for  note  in  notes  ]
-        ioblist = [  note.getIOBLabels()           for  note  in  notes  ]
-
-        data1 = reduce( concat,    text )
-        Y1    = reduce( concat, ioblist )
-
+        tokenized_sentences, iob_labels = first_pass_features_and_labels(notes)
 
         # Train classifier (side effect - saved as object's member variable)
+        # TODO - Add verbosity levels for output
         print 'first pass'
-        self.first_train(data1, Y1, do_grid)
+        self.first_train(tokenized_sentences, iob_labels, do_grid)
 
 
 
         ###############
         # Second pass #
         ###############
+
+        # FIXME - Do same abstraction method as done for first pass
 
         # Get the data and annotations from the Note objects
         chunks  = [  note.getChunkedText()     for  note  in  notes  ]
@@ -115,21 +112,13 @@ class Model:
         feat_obj = features.FeatureWrapper(data)
 
 
+        # FIXME 0000b - separate the partition from the feature extraction
+        #                 (includes removing feat_obj as argument)
         # Parition into prose v. nonprose
-        prose    = []
-        nonprose = []
-        pchunks = []
-        nchunks = []
-        for line,labels in zip(data,Y):
-            isProse,feats = feat_obj.extract_IOB_features(line)
-            if isProse:
-                prose.append(feats)
-                pchunks += labels
-            else:
-                nonprose.append(feats)
-                nchunks += labels
+        prose, nonprose, pchunks, nchunks = partition_prose(data, Y, feat_obj)
 
 
+        # FIXME 0001 - make this into a function that is called twice
         # Classify both prose & nonprose
         flabels    = ['prose'             , 'nonprose'             ]
         fsets      = [prose               , nonprose               ]
@@ -254,6 +243,8 @@ class Model:
 
         print 'first pass'
 
+        # FIXME 0003 - continue to interface with note object like above
+        #              (consistency is good for testing purpose)
         # Get the data and annotations from the Note objects
         data   = note.getTokenizedSentences()
 
@@ -451,6 +442,77 @@ class Model:
         # Return classifications
         return classifications
 
+
+
+
+def first_pass_features_and_labels(notes):
+
+    '''
+    first_pass_features_and_labels()
+
+    Purpose: Interface with notes object to get text data and labels
+
+    @param notes
+    @return <tuple> whose elements are:
+              0) list of tokenized sentences
+              1) list of labels for tokenized sentences
+
+    >>> ...
+    >>> notes = ...
+    >>> first_pass_features_and_labels(notes)
+    (kerbkker,venrkvjdfkjv)
+    '''
+
+    # Get the data and annotations from the Note objects
+    text    = [  note.getTokenizedSentences()  for  note  in  notes  ]
+    ioblist = [  note.getIOBLabels()           for  note  in  notes  ]
+
+    data1 = reduce( concat,    text )
+    Y1    = reduce( concat, ioblist )
+
+    return data1, Y1
+
+
+
+def partition_prose(data, Y, feat_obj):
+
+    '''
+    partition_prose
+
+    Purpose: Partition data (and corresponding labels) into prose and nonprose sections
+
+    @param data. list of tokenized sentences
+    @param Y.    list of corresponding labels for tokenized sentences
+    @return <tuple> whose four elements are:
+            0) foo
+            1) bar
+            2) baz
+            3) quux
+
+    >>> ...
+    >>> data = ...
+    >>> Y = ...
+    >>> feat_obj = ... # eventually want to get rid of this argument
+    >>> partition_prose(data, Y, feat_obj)
+    ...
+    '''
+
+    # FIXME 0000a - separate the partition from the feature extraction
+
+    prose    = []
+    nonprose = []
+    pchunks = []
+    nchunks = []
+    for line,labels in zip(data,Y):
+        isProse,feats = feat_obj.extract_IOB_features(line)
+        if isProse:
+            prose.append(feats)
+            pchunks += labels
+        else:
+            nonprose.append(feats)
+            nchunks += labels
+
+    return prose, nonprose, pchunks, nchunks
 
 
 
