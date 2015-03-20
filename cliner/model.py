@@ -13,6 +13,7 @@ from features_dir import features, utilities
 
 from notes.note import concept_labels, reverse_concept_labels, IOB_labels, reverse_IOB_labels
 
+import globals_cliner
 
 
 
@@ -32,9 +33,9 @@ class Model:
         self.crf_enabled = is_crf
 
         # DictVectorizers
-        self.first_prose_vec    = DictVectorizer()
-        self.first_nonprose_vec = DictVectorizer()
-        self.second_vec         = DictVectorizer()
+        self.first_prose_vec    = None
+        self.first_nonprose_vec = None
+        self.second_vec         = None
 
         # Classifiers
         self.first_prose_clf    = None
@@ -54,39 +55,82 @@ class Model:
         @return       None
         """
 
-
         ##############
         # First pass #
         ##############
 
-        tokenized_sentences, iob_labels = first_pass_features_and_labels(notes)
+        if globals_cliner.verbosity > 0: print 'first pass'
 
-        # Train classifier (side effect - saved as object's member variable)
-        # TODO - Add verbosity levels for output
-        print 'first pass'
+        # Train first pass classifiers
+        # Side effects: modifies
+        #     1) self.first_prose_vec
+        #     2) self.first_nonprose_vec
+        #     3) self.first_prose_clf
+        #     4) self.first_nonprose_clf
+        tokenized_sentences, iob_labels = first_pass_sentences_and_labels(notes)
         self.first_train(tokenized_sentences, iob_labels, do_grid)
-
 
 
         ###############
         # Second pass #
         ###############
 
-        # FIXME - Do same abstraction method as done for first pass
+        if globals_cliner.verbosity > 0: print 'second pass'
 
-        # Get the data and annotations from the Note objects
-        chunks  = [  note.getChunkedText()     for  note  in  notes  ]
-        indices = [  note.getConceptIndices()  for  note  in  notes  ]
-        conlist = [  note.getConceptLabels()   for  note  in  notes  ]
-
-        data2 = reduce( concat, chunks  )
-        inds  = reduce( concat, indices )
-        Y2    = reduce( concat, conlist )
+        # Train first pass classifiers
+        # Side effects: modifies
+        #     1) self.second_vec
+        #     2) self.second_clf
+        chunks, indices, concept_labels = second_pass_data_and_labels(notes)
+        self.second_train(chunks, indices, concept_labels, do_grid)
 
 
-        # Train classifier (side effect - saved as object's member variable)
-        print 'second pass'
-        self.second_train(data2, inds, Y2, do_grid)
+
+
+    def generic_train(self, flabel, fset, chunks, do_grid=False):
+
+        '''
+        generic_train
+
+        Purpose: Train for both prose and nonprose
+        '''
+
+        if len(fset) == 0:
+            raise Exception('Training must have %s training examples' % flabel)
+
+        if globals_cliner.verbosity > 0:
+            print '\tvectorizing features (pass one) ' + flabel
+
+        # Vectorize IOB labels
+        Y = [  IOB_labels[y]  for  y  in  chunks  ]
+
+        # Save list structure to reconstruct after vectorization
+        offsets = [ len(sublist) for sublist in fset ]
+        for i in range(1, len(offsets)):
+            offsets[i] += offsets[i-1]
+
+        # Vectorize features
+        flattened = [item for sublist in fset for item in sublist]
+        dvect = DictVectorizer()
+        X = dvect.fit_transform(flattened)
+
+        # CRF needs reconstructed lists
+        if self.crf_enabled:
+            X = list(X)
+            X = [ X[i:j] for i, j in zip([0] + offsets, offsets)]
+            Y = [ Y[i:j] for i, j in zip([0] + offsets, offsets)]
+            lib = crf
+        else:
+            lib = sci
+
+
+        if globals_cliner.verbosity > 0:
+            print '\ttraining classifiers (pass one) ' + flabel
+
+        # Train classifiers
+        clf  = lib.train(X, Y, do_grid)
+
+        return dvect,clf
 
 
 
@@ -105,7 +149,7 @@ class Model:
         @return          None
         """
 
-        print '\textracting  features (pass one)'
+        if globals_cliner.verbosity > 0: print '\textracting  features (pass one)'
 
 
         # Create object that is a wrapper for the features
@@ -118,61 +162,17 @@ class Model:
         prose, nonprose, pchunks, nchunks = partition_prose(data, Y, feat_obj)
 
 
-        # FIXME 0001 - make this into a function that is called twice
-        # Classify both prose & nonprose
-        flabels    = ['prose'             , 'nonprose'             ]
-        fsets      = [prose               , nonprose               ]
-        chunksets  = [pchunks             , nchunks                ]
-        dvects     = [self.first_prose_vec, self.first_nonprose_vec]
-        clfs       = [self.first_prose_clf, self.first_nonprose_clf]
-
-        vectorizers = []
-        classifiers = []
-
-        for flabel,fset,chunks,dvect,clf in zip(flabels, fsets, chunksets, dvects, clfs):
-
-            if len(fset) == 0:
-                raise Exception('Training data must have %s training examples' % flabel)
-
-            print '\tvectorizing features (pass one) ' + flabel
-
-            # Vectorize IOB labels
-            Y = [  IOB_labels[y]  for  y  in  chunks  ]
-
-            # Save list structure to reconstruct after vectorization
-            offsets = [ len(sublist) for sublist in fset ]
-            for i in range(1, len(offsets)):
-                offsets[i] += offsets[i-1]
-
-            # Vectorize features
-            flattened = [item for sublist in fset for item in sublist]
-            X = dvect.fit_transform(flattened)
-            vectorizers.append(dvect)
-
-
-            print '\ttraining classifiers (pass one) ' + flabel
-
-            # CRF needs reconstructed lists
-            if self.crf_enabled:
-                X = list(X)
-                X = [ X[i:j] for i, j in zip([0] + offsets, offsets)]
-                Y = [ Y[i:j] for i, j in zip([0] + offsets, offsets)]
-                lib = crf
-            else:
-                lib = sci
-
-            # Train classifiers
-            clf  = lib.train(X, Y, do_grid)
-            classifiers.append(clf)
-
+        # Train classifiers for prose and nonprose
+        pvec, pclf = self.generic_train(   'prose',    prose, pchunks, do_grid)
+        nvec, nclf = self.generic_train('nonprose', nonprose, nchunks, do_grid)
 
         # Save vectorizers
-        self.first_prose_vec    = vectorizers[0]
-        self.first_nonprose_vec = vectorizers[1]
+        self.first_prose_vec    = pvec
+        self.first_nonprose_vec = nvec
 
         # Save classifiers
-        self.first_prose_clf    = classifiers[0]
-        self.first_nonprose_clf = classifiers[1]
+        self.first_prose_clf    = pclf
+        self.first_nonprose_clf = nclf
 
 
 
@@ -202,7 +202,8 @@ class Model:
         @return          None
         """
 
-        print '\textracting  features (pass two)'
+        if globals_cliner.verbosity > 0:
+            print '\textracting  features (pass two)'
 
         # Create object that is a wrapper for the features
         feat_o = features.FeatureWrapper()
@@ -212,16 +213,19 @@ class Model:
         X = reduce(concat, X)
 
 
-        print '\tvectorizing features (pass two)'
+        if globals_cliner.verbosity > 0:
+            print '\tvectorizing features (pass two)'
 
         # Vectorize labels
         Y = [  concept_labels[y]  for  y  in  Y  ]
 
         # Vectorize features
+        self.second_vec = DictVectorizer()
         X = self.second_vec.fit_transform(X)
 
 
-        print '\ttraining  classifier (pass two)'
+        if globals_cliner.verbosity > 0:
+            print '\ttraining  classifier (pass two)'
 
 
         # Train the model
@@ -241,7 +245,7 @@ class Model:
         ##############
 
 
-        print 'first pass'
+        if globals_cliner.verbosity > 0: print 'first pass'
 
         # FIXME 0003 - continue to interface with note object like above
         #              (consistency is good for testing purpose)
@@ -259,7 +263,7 @@ class Model:
         ###############
 
 
-        print 'second pass'
+        if globals_cliner.verbosity > 0: print 'second pass'
 
         # Get the data and annotations from the Note objects
         chunks = note.getChunkedText()
@@ -285,7 +289,7 @@ class Model:
         @return       A list of list of IOB labels (1:1 mapping with data)
         """
 
-        print '\textracting  features (pass one)'
+        if globals_cliner.verbosity > 0: print '\textracting  features (pass one)'
 
 
         # Create object that is a wrapper for the features
@@ -322,7 +326,7 @@ class Model:
                 continue
 
 
-            print '\tvectorizing features (pass one) ' + flabel
+            if globals_cliner.verbosity > 0: print '\tvectorizing features (pass one) ' + flabel
 
             # Save list structure to reconstruct after vectorization
             offsets = [ len(sublist) for sublist in fset ]
@@ -334,7 +338,7 @@ class Model:
             X = dvect.transform(flattened)
 
 
-            print '\tpredicting    labels (pass one) ' + flabel
+            if globals_cliner.verbosity > 0: print '\tpredicting    labels (pass one) ' + flabel
 
             # CRF requires reconstruct lists
             if self.crf_enabled:
@@ -392,7 +396,7 @@ class Model:
         feat_o = features.FeatureWrapper()
 
 
-        print '\textracting  features (pass two)'
+        if globals_cliner.verbosity > 0: print '\textracting  features (pass two)'
 
 
         # Extract features
@@ -400,14 +404,14 @@ class Model:
         X = reduce(concat, X)
 
 
-        print '\tvectorizing features (pass two)'
+        if globals_cliner.verbosity > 0: print '\tvectorizing features (pass two)'
 
 
         # Vectorize features
         X = self.second_vec.transform(X)
 
 
-        print '\tpredicting    labels (pass two)'
+        if globals_cliner.verbosity > 0: print '\tpredicting    labels (pass two)'
 
 
         # Predict concept labels
@@ -445,22 +449,28 @@ class Model:
 
 
 
-def first_pass_features_and_labels(notes):
+def first_pass_sentences_and_labels(notes):
 
     '''
-    first_pass_features_and_labels()
+    first_pass_sentences_and_labels()
 
     Purpose: Interface with notes object to get text data and labels
 
-    @param notes
+    @param notes. List of Note objects
     @return <tuple> whose elements are:
               0) list of tokenized sentences
               1) list of labels for tokenized sentences
 
-    >>> ...
-    >>> notes = ...
-    >>> first_pass_features_and_labels(notes)
-    (kerbkker,venrkvjdfkjv)
+    >>> import os
+    >>> from notes.note import Note
+    >>> base_dir = os.path.join(os.getenv('CLINER_DIR'), 'examples')
+    >>> txt = os.path.join(base_dir, 'single.txt')
+    >>> con = os.path.join(base_dir, 'single.con')
+    >>> note_tmp = Note('i2b2')
+    >>> note_tmp.read(txt, con)
+    >>> notes = [note_tmp]
+    >>> first_pass_sentences_and_labels(notes)
+    ([['The', 'score', 'stood', 'four', 'to', 'two', ',', 'with', 'but', 'one', 'inning', 'more', 'to', 'play', ',']], [['B', 'I', 'I', 'I', 'I', 'I', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']])
     '''
 
     # Get the data and annotations from the Note objects
@@ -471,6 +481,46 @@ def first_pass_features_and_labels(notes):
     Y1    = reduce( concat, ioblist )
 
     return data1, Y1
+
+
+
+
+def second_pass_data_and_labels(notes):
+
+    '''
+    second_pass_data_and_labels()
+
+    Purpose: Interface with notes object to get text data and labels
+
+    @param notes. List of Note objects
+    @return <tuple> whose elements are:
+              0) list of chunked sentences
+              0) list of list-of-indices designating chunks
+              1) list of labels for chunks
+
+    >>> import os
+    >>> from notes.note import Note
+    >>> base_dir = os.path.join(os.getenv('CLINER_DIR'), 'examples')
+    >>> txt = os.path.join(base_dir, 'single.txt')
+    >>> con = os.path.join(base_dir, 'single.con')
+    >>> note_tmp = Note('i2b2')
+    >>> note_tmp.read(txt, con)
+    >>> notes = [note_tmp]
+    >>> second_pass_data_and_labels(notes)
+    ([['The score stood four to two', ',', 'with', 'but', 'one', 'inning', 'more', 'to', 'play', ',']], [[0]], ['problem'])
+    '''
+
+    # Get the data and annotations from the Note objects
+    chunks  = [  note.getChunkedText()     for  note  in  notes  ]
+    indices = [  note.getConceptIndices()  for  note  in  notes  ]
+    conlist = [  note.getConceptLabels()   for  note  in  notes  ]
+
+    data2 = reduce( concat, chunks  )
+    inds  = reduce( concat, indices )
+    Y2    = reduce( concat, conlist )
+
+    return data2, inds, Y2
+
 
 
 
