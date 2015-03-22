@@ -15,7 +15,7 @@ echo -e "\nSee genia installation details at: \n\t$GENIA_DIR/log_installation.tx
 
 
 # Get sources
-cd $CLINER_DIR/cliner/features_dir/genia
+cd $CLINER_DIR/cliner/features_dir/genia_dir
 wget http://www.nactem.ac.uk/tsujii/GENIA/tagger/geniatagger-3.0.1.tar.gz &>> $log
 tar xzvf geniatagger-3.0.1.tar.gz &>> $log
 rm geniatagger-3.0.1.tar.gz
