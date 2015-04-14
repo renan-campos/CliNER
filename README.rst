@@ -13,7 +13,32 @@ Please note that for optimal performance, CliNER requires the users to obtain a 
 * Documentation: http://cliner.readthedocs.org.
 
 
-Installation
+Quick Installation
+--------
+
+    You will need the following python modules (which can be installed with pip):
+
+        - nose
+        - numpy
+        - scikit-learn
+        - scipy
+        - nltk
+        - python-crfsuite
+
+    You will also need to run nltk's downloader to get some additional tools:
+
+        - maxent_treebank_pos_tagger
+        - wordnet
+
+    Unfortuantely, we cannot provide you with the licensed training data (from i2b2), so for a fully functioning model, you will need to train on your own annotated data.
+
+    Optional: for additional performance, download some tables from the UMLS Metathesaurus. See the detailed installation section for more info on that.
+
+
+**Test Successful Installation**
+
+
+Detailed Installation
 --------
 
 **Cloning the CliNER git repository:**
@@ -58,7 +83,6 @@ The script begins with a diagnostic to see what needs to be installed. If the sc
 ::
 
     python-pip
-    python-virtualenv
     python-dev
     g++
     gfortran
@@ -89,21 +113,6 @@ Please email wboag@cs.uml.edu with your installation questions.
 **Step-by-step installation instructions:**
 
 
-(1) Set up virtualenv
-
-    Setup a virtual environent. You must re-enable the virtual environment every new session.
-
-    ::
-
-        user@your-machine:~$ virtualenv venv_cliner
-        user@your-machine:~$ source venv_cliner/bin/activate
-
-
-    reference
-        https://virtualenv.pypa.io/en/latest/
-
-
-
 (2) Set the CLINER_DIR environment variable
 
     In order to run CliNER, you must define the CLINER_DIR environment variable.
@@ -123,7 +132,6 @@ Please email wboag@cs.uml.edu with your installation questions.
 
         Linux:
             * python-pip
-            * python-virtualenv
             * python-dev
             * g++
             * gfortran
@@ -287,5 +295,23 @@ Usage Examples
         Change Format
         ::
             (venv_cliner)user@your-machine:~/CliNER$ cliner format $CLINER_DIR/data/test_predictions/pretend.xml --format i2b2
+
+
+
+Notes
+
+    We recommend using a virtual environment for you python packages.
+
+        Setup a virtual environent. You must re-enable the virtual environment every new session.
+
+        ::
+
+            user@your-machine:~$ virtualenv venv_cliner
+            user@your-machine:~$ source venv_cliner/bin/activate
+
+
+        reference
+            https://virtualenv.pypa.io/en/latest/
+
 
 

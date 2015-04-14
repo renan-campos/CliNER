@@ -6,7 +6,7 @@
 
 
 # Installation log
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+GENIA_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 log="$GENIA_DIR/log_installation.txt"
 echo "" > $log
 
@@ -15,7 +15,8 @@ echo -e "\nSee genia installation details at: \n\t$GENIA_DIR/log_installation.tx
 
 
 # Get sources
-cd $CLINER_DIR/cliner/features_dir/genia_dir
+BASE_DIR=$(dirname $(dirname $GENIA_DIR))
+cd $BASE_DIR/cliner/features_dir/genia_dir
 wget http://www.nactem.ac.uk/tsujii/GENIA/tagger/geniatagger-3.0.1.tar.gz &>> $log
 tar xzvf geniatagger-3.0.1.tar.gz &>> $log
 rm geniatagger-3.0.1.tar.gz
@@ -33,13 +34,7 @@ if ! [[ $? -eq 0 ]] ; then
     return
 fi
 
-# Set config file location of tagger
-if [[ ! -f "$CLINER_DIR/config.txt" ]] ; then
-    echo -e "\tWarning: Could not update config.txt because CLINER_DIR must be an absolute path\n"
-    cd $old_path
-    return
-fi
-config_file="$CLINER_DIR/config.txt"
+config_file="$BASE_DIR/config.txt"
 out_tmp="out.tmp.txt"
 echo "GENIA $(pwd)/geniatagger" > $out_tmp
 while read line ; do

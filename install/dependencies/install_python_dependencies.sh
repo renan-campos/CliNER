@@ -13,10 +13,6 @@ echo "" > $log
 echo -e "\nSee python dependency details at: \n\t$DEPENDENCIES_DIR/log_installation.txt\n"
 
 
-# Virtual Environment
-source $CLINER_DIR/install/virtualenv/create_virtualenv.sh
-
-
 #modules=(nltk python-crfsuite nose numpy scipy scikit-learn marisa-trie)
 modules=(nltk python-crfsuite numpy scipy scikit-learn marisa-trie)
 for m in ${modules[@]} ; do
@@ -24,7 +20,7 @@ for m in ${modules[@]} ; do
     echo -e "\nmodule: $m"
 
     # Install module if necessary
-    python $CLINER_DIR/cliner/is_installed.py $m
+    python $DEPENDENCIES_DIR/is_installed.py $m
     if [[ $? != 0 ]] ; then
         echo "installing $m"
         pip install -U $m &>> $log

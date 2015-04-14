@@ -27,22 +27,24 @@ from notes.note import Note
 def main():
     parser = argparse.ArgumentParser()
 
+    BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
     parser.add_argument("-t",
         dest = "txt",
         help = "The files that contain the training examples",
-        default = os.path.join(os.getenv('CLINER_DIR'), 'data/train/txt/*')
+        default = os.path.join(BASE_DIR, 'data/train/txt/*')
     )
 
     parser.add_argument("-c",
         dest = "con",
         help = "The files that contain the labels for the training examples",
-        default = os.path.join(os.getenv('CLINER_DIR'), 'data/train/con/*')
+        default = os.path.join(BASE_DIR, 'data/train/con/*')
     )
 
     parser.add_argument("-m",
         dest = "model",
         help = "Path to the model that should be generated",
-        default = os.path.join(os.getenv('CLINER_DIR'), 'models/run.model')
+        default = os.path.join(BASE_DIR, 'models/run.model')
     )
 
     parser.add_argument("-f",

@@ -25,22 +25,24 @@ def main():
 
     parser = argparse.ArgumentParser()
 
+    BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
     parser.add_argument("-i",
         dest = "input",
         help = "The input files to predict",
-        default = os.path.join(os.getenv('CLINER_DIR'), 'data/test_data/*')
+        default = os.path.join(BASE_DIR, 'data/test_data/*')
     )
 
     parser.add_argument("-o",
         dest = "output",
         help = "The directory to write the output",
-        default = os.path.join(os.getenv('CLINER_DIR'), 'data/test_predictions')
+        default = os.path.join(BASE_DIR, 'data/test_predictions')
     )
 
     parser.add_argument("-m",
         dest = "model",
         help = "The model to use for prediction",
-        default = os.path.join(os.getenv('CLINER_DIR'), 'models/run.model')
+        default = os.path.join(BASE_DIR, 'models/run.model')
     )
 
     parser.add_argument("-f",

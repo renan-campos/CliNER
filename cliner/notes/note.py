@@ -24,6 +24,12 @@ import os.path
 from utilities_for_notes import lineno_and_tokspan
 
 
+
+def back(path):
+    return os.path.dirname(path)
+
+
+
 # Master Class
 class Note:
 
@@ -62,7 +68,8 @@ class Note:
         if Note.supported_formats: return Note.supported_formats
 
         # Note files
-        cands = os.listdir(os.path.join(os.getenv('CLINER_DIR'),'cliner/notes'))
+        NOTES_DIR = os.path.dirname(__file__)
+        cands = os.listdir(NOTES_DIR)
         notes = filter(lambda f:f.startswith('note_'), cands)
         notes = filter(lambda f:  f.endswith('.py'  ), notes)
 

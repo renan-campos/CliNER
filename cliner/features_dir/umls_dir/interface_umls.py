@@ -20,10 +20,16 @@ import create_trie
 ############################################
 
 
+
+def back(path):
+    return os.path.dirname(path)
+
+
 #connect to UMLS database
 def SQLConnect():
     #try to connect to the sqlite database.
-    db_path = os.path.join( os.environ['CLINER_DIR'], "umls_tables/umls.db")
+    BASE_DIR = back(back(back(__file__)))
+    db_path = os.path.join( BASE_DIR, "umls_tables/umls.db" )
     if( os.path.isfile( db_path ) ):
         print "\ndb exists"
     else:

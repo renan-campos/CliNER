@@ -18,7 +18,8 @@ import sys
 import subprocess
 import glob
 
-sys.path.append( os.environ['CLINER_DIR'] + "/cliner/notes" )
+sys.path.append( os.path.join( os.path.dirname(__file__), "notes" ) )
+print sys.path
 
 from note import Note
 
@@ -49,12 +50,10 @@ def train(annotations, model, format, grid, crf, input):
         exit(1)
 
     # Base directory
-    BASE_DIR = os.environ.get('CLINER_DIR')
-    if not BASE_DIR:
-        raise Exception('Environment variable CLINER_DIR must be defined')
+    BASE_DIR = os.path.dirname(__file__)
 
     # Executable
-    runable = os.path.join(BASE_DIR, 'cliner/train.py')
+    runable = os.path.join(BASE_DIR, 'train.py')
 
     # Build command
     cmd = ['python', runable, '-t', input]
@@ -86,12 +85,10 @@ def train(annotations, model, format, grid, crf, input):
 def predict(model, out, format, input):
 
     # Base directory
-    BASE_DIR = os.environ.get('CLINER_DIR')
-    if not BASE_DIR:
-        raise Exception('Environment variable CLINER_DIR must be defined')
+    BASE_DIR = os.path.dirname(__file__)
 
     # Executable
-    runable = os.path.join(BASE_DIR,'cliner/predict.py')
+    runable = os.path.join(BASE_DIR, 'predict.py')
 
     # Build command
     cmd = ['python', runable, '-i', input]
@@ -121,12 +118,10 @@ def predict(model, out, format, input):
 def evaluate(predictions, gold, out, format, input):
 
     # Base directory
-    BASE_DIR = os.environ.get('CLINER_DIR')
-    if not BASE_DIR:
-        raise Exception('Environment variable CLINER_DIR must be defined')
+    BASE_DIR = os.path.dirname(__file__)
 
     # Executable
-    runable = os.path.join(BASE_DIR,'cliner/evaluate.py')
+    runable = os.path.join(BASE_DIR,'evaluate.py')
 
     # Build command
     cmd = ['python', runable, '-t', input]
@@ -157,12 +152,10 @@ def evaluate(predictions, gold, out, format, input):
 def format(annotations, format, out, input):
 
     # Base directory
-    BASE_DIR = os.environ.get('CLINER_DIR')
-    if not BASE_DIR:
-        raise Exception('Environment variable CLINER_DIR must be defined')
+    BASE_DIR = os.path.dirname(__file__)
 
     # Executable
-    runable = os.path.join(BASE_DIR,'cliner/format.py')
+    runable = os.path.join(BASE_DIR, 'format.py')
 
     # Build command
     cmd = ['python', runable, flag, input]

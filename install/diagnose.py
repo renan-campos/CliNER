@@ -9,8 +9,6 @@
 
 import os
 
-from cliner_dir.is_cliner_dir_correct import is_cliner_dir_correct
-
 from dependencies.status_report import check_python_dependencies_installed
 from dependencies.status_report import display_status
 from dependencies.status_report import auxiliary as dependencies_auxiliary
@@ -20,15 +18,6 @@ from dependencies.status_report import nltk_data as dependencies_nltk_data
 
 
 def main():
-
-
-    # 1. CLINER_DIR environment variable
-    if not is_cliner_dir_correct():
-        print '\nERROR: CLINER_DIR not set correctly'
-        print '\tthis should be set to path of cloned github directory'
-        print "\tex. 'export CLINER_DIR=/home/wboag/CliNER'\n"
-    else:
-        print '\ngood: CLINER_DIR set correctly\n'
 
 
     # 2. Python dependencies

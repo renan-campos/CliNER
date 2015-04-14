@@ -285,26 +285,30 @@ def generateResultsForExactSpans(truePositive, falseNegative, falsePositive):
     return {"Recall":(recall * 100), "Precision":(precision * 100), "F Score":(fScore * 100)}
 
 
+
+
 def main():
 
     parser = argparse.ArgumentParser()
 
+    BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
     parser.add_argument("-t",
         help = "Text files that were used to generate predictions",
         dest = "txt",
-        default = os.path.join(os.getenv('CLINER_DIR'), 'data/test_data/*')
+        default = os.path.join(BASE_DIR, 'data/test_data/*')
     )
 
     parser.add_argument("-c",
         help = "The directory that contains predicted concept files organized into subdirectories for svm, lin, srf",
         dest = "con",
-        default = os.path.join(os.getenv('CLINER_DIR'), 'data/test_predictions/')
+        default = os.path.join(BASE_DIR, 'data/test_predictions/')
     )
 
     parser.add_argument("-r",
         help = "The directory that contains reference gold standard concept files",
         dest = "ref",
-        default = os.path.join(os.getenv('CLINER_DIR'), 'data/reference_standard_for_test_data/concepts/')
+        default = os.path.join(BASE_DIR, 'data/reference_standard_for_test_data/concepts/')
     )
 
     parser.add_argument("-f",

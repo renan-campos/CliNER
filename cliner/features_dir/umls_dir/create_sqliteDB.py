@@ -4,18 +4,25 @@ import os
 import sys
 import os
 
+
+def back(path):
+    return os.path.dirname(path)
+
+
 def create_db():
 
     print "\ncreating umls.db"
     #connect to the .db file we are creating.
-    db_path = os.path.join(os.environ['CLINER_DIR'],'umls_tables/umls.db')
+    # TODO - read umls_tables path from config file
+    BASE_DIR = back(back(back(__file__)))
+    db_path = os.path.join(BASE_DIR,'umls_tables/umls.db')
     conn = sqlite3.connect( db_path )
     conn.text_factory = str
 
     print "opening files"
     #load data in files.
     try:
-        mrsty_path = os.path.join(os.environ['CLINER_DIR'],'umls_tables/MRSTY')
+        mrsty_path = os.path.join(BASE_DIR,'umls_tables/MRSTY')
         MRSTY_TABLE = open( mrsty_path, "r" )
     except IOError:
         print "\nNo file to use for creating MRSTY table\n"
@@ -23,7 +30,7 @@ def create_db():
         sys.exit()
 
     try:
-        mrcon_path = os.path.join(os.environ['CLINER_DIR'],'umls_tables/MRCON')
+        mrcon_path = os.path.join(BASE_DIR,'umls_tables/MRCON')
         MRCON_TABLE = open( mrcon_path , "r" )
     except IOError:
         print "\nNo file to use for creating MRCON table\n"
@@ -31,7 +38,7 @@ def create_db():
         sys.exit()
 
     try:
-        mrrel_path = os.path.join(os.environ['CLINER_DIR'],'umls_tables/MRREL')
+        mrrel_path = os.path.join(BASE_DIR,'umls_tables/MRREL')
         MRREL_TABLE = open( mrrel_path , "r" )
     except IOError:
         print "\nNo file to use for creating MRREL table\n"

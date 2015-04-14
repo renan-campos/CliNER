@@ -14,11 +14,17 @@ import helper
 
 
 
+def back(path):
+    return os.path.dirname(path)
+
+
+
 class UmlsSimilarity:
 
     def __init__(self):
         # Ensure cache dir exists
-        cache_dir = os.path.join(os.getenv('CLINER_DIR'), 'caches')
+        BASE_DIR = back(back(back(__file__)))
+        cache_dir = os.path.join(BASE_DIR, 'caches')
         helper.mkpath(cache_dir)
 
         # Read data

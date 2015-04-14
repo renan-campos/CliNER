@@ -1,10 +1,16 @@
 import cPickle as pickle
 import os
 
+
+
+def back(path):
+    return os.path.dirname(path)
+
+
 class UmlsCache:
     def __init__(self):
         try:
-            prefix = os.environ['CLINER_DIR']
+            prefix = back(back(back(__file__)))
             self.filename = os.path.join( prefix, 'umls_tables/umls_cache' )
             self.cache = pickle.load( open( self.filename , "rb" ) ) ;
         except IOError:

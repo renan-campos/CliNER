@@ -13,6 +13,11 @@ import os
 
 
 
+def back(path):
+    return os.path.dirname(path)
+
+
+
 #
 # enabled_modules
 #
@@ -23,7 +28,8 @@ import os
 def enabled_modules():
 
     # Open config file
-    filename = os.path.join( os.getenv('CLINER_DIR'), 'config.txt' )
+    BASE_DIR = back(back(__file__))
+    filename = os.path.join( BASE_DIR, 'config.txt' )
     f = open(filename, 'r')
 
     specs = {}

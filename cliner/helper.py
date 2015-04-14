@@ -4,6 +4,12 @@ import os.path
 import errno
 
 
+
+def cliner_dir():
+    path = os.path.abspath(__file__)
+    return os.path.dirname(os.path.dirname(path))
+
+
 def map_files(files):
     """Maps a list of files to basename -> path."""
     output = {}

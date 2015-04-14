@@ -6,6 +6,10 @@ import cPickle as pickle
 
 
 
+def back(path):
+    return os.path.dirname(path)
+
+
 
 def create_trie():
 
@@ -18,7 +22,7 @@ def create_trie():
     """
 
     # Is trie already built & pickled?
-    prefix = os.environ['CLINER_DIR']
+    prefix = back(back(back(__file__)))
     filename = os.path.join( prefix, 'umls_tables/umls-concept.trie' )
     try:
         t = pickle.load( open( filename , "rb" ) ) ;
@@ -32,7 +36,7 @@ def create_trie():
     #load data in files.
     print "opening file"
     try:
-        mrcon_path = os.path.join(os.environ['CLINER_DIR'],'umls_tables/MRCON')
+        mrcon_path = os.path.join(prefix,'umls_tables/MRCON')
         MRCON_TABLE = open( mrcon_path , "r" )
     except IOError:
         print "\nNo file to use for creating MRCON table\n"
