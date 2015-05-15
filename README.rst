@@ -113,7 +113,7 @@ Please email wboag@cs.uml.edu with your installation questions.
 **Step-by-step installation instructions:**
 
 
-(2) Set the CLINER_DIR environment variable
+(1) Set the CLINER_DIR environment variable
 
     In order to run CliNER, you must define the CLINER_DIR environment variable.
 
@@ -125,7 +125,7 @@ Please email wboag@cs.uml.edu with your installation questions.
 
 
 
-(3) Install dependencies
+(2) Install dependencies
 
 
     Ensure the following packages are installed on the system (they are used for building the required Python dependencies):
@@ -155,14 +155,14 @@ Please email wboag@cs.uml.edu with your installation questions.
 
     ::
 
-        (venv_cliner)user@your-machine:~/CliNER$ sudo apt-get install python-pip python-virtualenv python-dev g++ gfortran libopenblas-dev liblapack-dev -y
+        (venv_cliner)user@your-machine:~/CliNER$ sudo apt-get install python-pip python-dev g++ gfortran libopenblas-dev liblapack-dev -y
         (venv_cliner)user@your-machine:~/CliNER$ pip install nose numpy scikit-learn scipy nltk python-crfsuite
         (venv_cliner)user@your-machine:~/CliNER$ python -m nltk.downloader maxent_treebank_pos_tagger wordnet
 
 
 
 
-(4) Get i2b2 2010 shared task data
+(3) Get i2b2 2010 shared task data
 
     The Data Use and Confidentiality Agreement (DUA) with i2b2 forbids us from redistributing the i2b2 data. In order to gain access to the data, you must go to:
 
@@ -189,7 +189,7 @@ Please email wboag@cs.uml.edu with your installation questions.
 
 
 
-(5) Install GENIA tagger (optional)
+(4) Install GENIA tagger (optional)
 
     This is an optional part of installation. Adding the GENIA tagger will improve results of the system's predictions, but it could run without it.
 
@@ -207,7 +207,7 @@ Please email wboag@cs.uml.edu with your installation questions.
 
 
 
-(6) Get UMLS tables (optional)
+(5) Get UMLS tables (optional)
 
     This is an optional part of installation. Adding the UMLS tables will improve results of the system's predictions, but it could run without it.
 
@@ -225,7 +225,7 @@ Please email wboag@cs.uml.edu with your installation questions.
 
 
 
-(7) Create 'cliner' executable script for command-line use
+(6) Create 'cliner' executable script for command-line use
 
     In order to run CliNER (as done in the usage examples), you must run setup.py.
 
@@ -240,7 +240,7 @@ Please email wboag@cs.uml.edu with your installation questions.
 
 
 
-(8) Run unit tests
+(7) Run unit tests
 
     [this section is under construction]
 
