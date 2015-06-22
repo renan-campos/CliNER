@@ -13,57 +13,50 @@ import os
 
 
 # used as a default path for stashing pos tagger.
-pos_tagger_path = os.path.join( os.environ['CLINER_DIR'], "cliner/features_dir/nltk_tagger.p")
+pos_tagger_path = os.path.join( os.environ['CLINER_DIR'], "cliner', 'features_dir', 
+                                'nltk_tagger.p")
 
 if not os.path.isfile(pos_tagger_path):
     import nltk.data, nltk.tag
 
+
+
 def load_pickled_obj(path_to_pickled_obj):
-
     data = None
-
     with open(path_to_pickled_obj, "rb") as f:
-
         data = f.read()
-
     return pickle.loads(data)
 
+
+
 def pickle_dump(obj, path_to_obj):
-
-    f = open(path_to_obj, "wb")
-
     # NOTE: using highest priority makes loading TRAINED models load really slowly.
-    # use this function for anything BUT THAT!. I mainly made this for loading pos tagger...
+    # use this function for anything BUT THAT! I mainly made this for loading pos tagger
+    f = open(path_to_obj, "wb")
     pickle.dump(obj, f, -1)
-
     f.close()
 
+
+
 def dump_pos_tagger(path_to_obj):
-
     tagger = nltk.data.load(nltk.tag._POS_TAGGER)
-
     pickle_dump(tagger, path_to_obj)
+
+
 
 def load_pos_tagger(path_to_obj=pos_tagger_path):
     """ faster tagger loading """
-
     tagger = None
-
     if os.path.isfile(path_to_obj):
-
         print "loading tagger..."
-
         tagger = load_pickled_obj(path_to_obj)
-
     else:
-
         print "tagger not currently stashed... creating new stash..."
-
         dump_pos_tagger(path_to_obj)
-
         tagger = load_pickled_obj(path_to_obj)
-
     return tagger
+
+
 
 def is_prose_sentence(sentence):
     """
@@ -127,6 +120,7 @@ def is_at_least_half_nonprose(sentence):
         return False
 
 
+
 def is_prose_word(word):
     """
     is_prose_word(word)
@@ -161,5 +155,3 @@ def is_prose_word(word):
     # Else
     return True
 
-
-#EOF

@@ -115,7 +115,7 @@ def main():
     # Convert data to standard format
     internal_output = in_note.write_standard()
 
-    os_handle,tmp_file = tempfile.mkstemp(dir=tmp_dir, suffix="format_temp")
+    os_handle,tmp_file = tempfile.mkstemp(dir=tmp_dir)
     with open(tmp_file, 'w') as f:
         f.write(internal_output)
     os.close(os_handle)
