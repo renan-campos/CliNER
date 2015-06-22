@@ -54,9 +54,6 @@ def main():
     print
 
 
-    # 3. GENIA Tagger (optional)
-
-
     # 4. UMLS tables (optional)
 
 

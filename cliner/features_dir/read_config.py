@@ -18,7 +18,7 @@ def enabled_modules():
 
     @return a dictionary of {name, resource} pairs.
 
-    ex. {'UMLS': None, 'GENIA': 'genia/geniatagger-3.0.1/geniatagger'}
+    ex. {'UMLS': None}
 
     >>> enabled_modules() is not None
     True
@@ -28,7 +28,7 @@ def enabled_modules():
     f = open(filename, 'r')
 
     specs = {}
-    module_list = [ 'GENIA', 'UMLS' ]
+    module_list = [ 'UMLS' ]
 
 
     for line in f.readlines():

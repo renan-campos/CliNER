@@ -17,6 +17,3 @@ source $INSTALL_DIR/dependencies/install_python_dependencies.sh
 
 # install 'cliner' command
 bash $INSTALL_DIR/build/build_cliner.sh
-
-# genia tagger
-bash $INSTALL_DIR/genia/install_genia.sh

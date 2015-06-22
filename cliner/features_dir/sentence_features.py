@@ -17,11 +17,6 @@ from wordshape import getWordShapes
 # What modules are available
 from read_config import enabled_modules
 
-# Import feature modules
-enabled = enabled_modules()
-if enabled['GENIA']:
-    from genia_dir.genia_features import GeniaFeatures
-
 if enabled['UMLS']:
     from umls_dir.umls_features import UMLSFeatures
 
@@ -45,11 +40,6 @@ class SentenceFeatures:
         # Word-level features module
         self.feat_word = WordFeatures()
 
-        # Only run GENIA tagger if module is available
-        if data and enabled['GENIA']:
-            tagger = enabled['GENIA']
-            self.feat_genia = GeniaFeatures(tagger,data)
-
         # Only create UMLS cache if module is available
         if enabled['UMLS']:
             self.feat_umls = UMLSFeatures()
@@ -71,7 +61,6 @@ class SentenceFeatures:
         self.enabled_IOB_prose_sentence_features.append('prev2')
         self.enabled_IOB_prose_sentence_features.append('next')
         self.enabled_IOB_prose_sentence_features.append('next2')
-        self.enabled_IOB_prose_sentence_features.append('GENIA')
         self.enabled_IOB_prose_sentence_features.append('UMLS')
 
 
@@ -141,27 +130,6 @@ class SentenceFeatures:
                     for j,p in enumerate(pos_tagged[i+1:i+end+1]):
                         pos = p[1]
                         features_list[i][('prev_pos_context-%d'%j,pos)] = 1
-
-
-            # GENIA features
-            if (feature == 'GENIA') and enabled['GENIA']:
-
-                # Get GENIA features
-                genia_feat_list = self.feat_genia.features(sentence)
-
-                '''
-                print '\t', sentence
-
-                print '\n\n'
-                for gf in genia_feat_list:
-                    print '\t', gf
-                    print
-                print '\n\n'
-                '''
-
-                for i,feat_dict in enumerate(genia_feat_list):
-                    features_list[i].update(feat_dict)
-
 
             # Feature: UMLS Word Features (only use prose ones)
             if (feature == "UMLS") and enabled['UMLS']:
