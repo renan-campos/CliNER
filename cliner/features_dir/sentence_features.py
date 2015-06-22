@@ -17,6 +17,7 @@ from wordshape import getWordShapes
 # What modules are available
 from read_config import enabled_modules
 
+enabled = enabled_modules()
 if enabled['UMLS']:
     from umls_dir.umls_features import UMLSFeatures
 
