@@ -16,6 +16,18 @@ def classification_cmp(a,b):
     concept_cmp()
 
     Purpose: Compare concept classification tokens
+
+    >>> a = ('problem', 4, 0, 5)
+    >>> b = ('treatment', 2, 0, 3)
+
+    >>> classification_cmp(b,a)
+    -1
+
+    >>> classification_cmp(a,a)
+    0
+
+    >>> classification_cmp(a,b)
+    1
     """
     a = (int(a[1]), int(a[2]))
     b = (int(b[1]), int(b[2]))
@@ -48,7 +60,13 @@ def concept_cmp(a,b):
 
 # Helper function
 def lineno_and_tokspan(line_inds, data, text, char_span):
-    """ File character offsets => line number and index into line """
+    '''
+    lineno_and_tokspan()
+
+    Purpose: File character offsets => line number and index into line
+
+    '''
+
     for i,span in enumerate(line_inds):
         if char_span[1] <= span[1]:
 
@@ -108,7 +126,11 @@ def lineno_and_tokspan(line_inds, data, text, char_span):
 
 # Helper function
 def lno_and_tokspan__to__char_span(line_inds, data, text, lineno, tokspan):
-    """ File character offsets => line number and index into line """
+    '''
+    lno_and_tokspan__to__char_span()
+
+    Purpose: File character offsets => line number and index into line
+    '''
 
     start,end = line_inds[lineno]
 
@@ -175,9 +197,30 @@ class SentenceTokenizer:
         self.sent_tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
 
     def tokenize(self, text_file):
-        """ Split the document into sentences """
-        text = open(text_file, 'r').read()
-        return self.sent_tokenizer.tokenize(text)
+        """ 
+        SentenceTokenize::tokenize()
+
+        Purpose: Split the document into sentences 
+
+        TODO: Add a case for a multi-sentence line
+
+        >>> import os
+        >>> base_dir = os.path.join( os.getenv('CLINER_DIR'), 'tests' )
+        >>> txt_file = os.path.join(base_dir, 'data', 'multi.txt')
+
+        >>> sent_tokenizer = SentenceTokenizer()
+        >>> sent_tokenizer.tokenize(txt_file)
+        ['Title :', 'Casey at the Bat', "The outlook wasn't brilliant for the Mudville Nine that day ;", 'The score stood four to two , with but one inning more to play ,']
+
+        """
+        # Read data from file
+        lines = open(text_file, 'r').read().strip().split('\n')
+
+        # Assume that sentences don't cross newline?
+        line_tokens = [ self.sent_tokenizer.tokenize(line) for line in lines ]
+        tokens = reduce(lambda a,b: a+b, line_tokens)
+
+        return tokens
 
 
 
@@ -189,6 +232,10 @@ class WordTokenizer:
         pass
 
     def tokenize(self, sent):
-        """ Split the sentence into tokens """
+        """ 
+        WordTokenizer::tokenize()
+
+        Purpose: Split the sentence into tokens 
+        """
         return sent.split()
 

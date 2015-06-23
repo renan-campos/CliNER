@@ -33,12 +33,12 @@ class Note_semeval(AbstractNote):
         self.sent_tokenizer = SentenceTokenizer()
         self.word_tokenizer = WordTokenizer()
 
-        # Internal representation natural for i2b2 format
+        # Internal representation natural for semeval format
         self.text = ''
         self.data            = []  # list of list of tokens
         self.line_inds = []
         self.classifications = []
-        self.fileName = 'no-file'
+        self.filename = 'no-file'
 
 
     def getExtension(self):
@@ -46,21 +46,126 @@ class Note_semeval(AbstractNote):
 
 
     def getText(self):
+        '''
+        Note_semeval::getText()
+
+        Purpose: Return the content of the text file
+
+        >>> import os
+        >>> base_dir = os.path.join(os.getenv('CLINER_DIR'), 'tests')
+        >>> txt_file = os.path.join(base_dir, 'data/multi.txt')
+        >>> con_file = os.path.join(base_dir, 'data/multi.pipe')
+
+        >>> n = Note_semeval()
+        >>> n.read(txt_file, con_file)
+        >>> out = n.getText()
+
+        >>> import tempfile
+
+        >>> os_handle,out_file = tempfile.mkstemp(dir='/tmp')
+        >>> f = open(out_file, 'w')
+        >>> print >>f, out
+        >>> f.close()
+
+        >>> import filecmp
+        >>> filecmp.cmp(txt_file, out_file)
+        True
+        >>> import os
+        >>> os.close(os_handle)
+        '''
         return self.text
 
 
     def getTokenizedSentences(self):
+        '''
+        Note_semeval::getTokenizedSentences()
+
+        Purpose: Get tokenized sentences from file
+
+        Note: Could need to be updated if switching tokenizer
+
+        >>> import os
+        >>> base_dir = os.path.join(os.getenv('CLINER_DIR'), 'tests')
+        >>> txt_file = os.path.join(base_dir, 'data/multi.txt')
+        >>> con_file = os.path.join(base_dir, 'data/multi.pipe')
+
+        >>> n = Note_semeval()
+        >>> n.read(txt_file, con_file)
+        >>> n.getTokenizedSentences()
+        [['Title', ':'], ['Casey', 'at', 'the', 'Bat'], ['The', 'outlook', "wasn't", 'brilliant', 'for', 'the', 'Mudville', 'Nine', 'that', 'day', ';'], ['The', 'score', 'stood', 'four', 'to', 'two', ',', 'with', 'but', 'one', 'inning', 'more', 'to', 'play', ',']]
+        '''
         return self.data
 
 
     def getClassificationTuples(self):
+        '''
+        Note_semeval::getClassificationTuples()
+
+        Purpose: Get the records that specify concept spans
+
+        >>> import os
+        >>> base_dir = os.path.join(os.getenv('CLINER_DIR'), 'tests')
+        >>> txt_file = os.path.join(base_dir, 'data/multi.txt')
+        >>> con_file = os.path.join(base_dir, 'data/multi.pipe')
+
+        >>> n = Note_semeval()
+        >>> n.read(txt_file, con_file)
+        >>> n.getClassificationTuples()
+        [('problem', [(8, 24)]), ('problem', [(87, 114)])]
+        '''
         return self.classifications
 
 
     def getLineIndices(self):
+        '''
+        Note_semeval::getLineIndices()
+
+        Purpose: Get the list of (start,end) indices of line breaks in the text file.
+
+        >>> import os
+        >>> base_dir = os.path.join(os.getenv('CLINER_DIR'), 'tests')
+        >>> txt_file = os.path.join(base_dir, 'data/multi.txt')
+        >>> con_file = os.path.join(base_dir, 'data/multi.pipe')
+
+        >>> n = Note_semeval()
+        >>> n.read(txt_file, con_file)
+        >>> n.getLineIndices()
+        [(0, 7), (8, 24), (25, 86), (87, 151)]
+        '''
         return self.line_inds
 
+
+
     def read_standard(self, txt, con=None):
+        """
+        Purpose: Every note must be able to read from standard forat
+
+        >>> import os
+        >>> base_dir = os.path.join(os.getenv('CLINER_DIR'), 'tests')
+        >>> txt_file      = os.path.join(base_dir, 'data/multi.txt'     )
+        >>> standard_file = os.path.join(base_dir, 'data/multi.standard')
+
+        >>> n = Note_semeval()
+        >>> n.read_standard(txt_file, standard_file)
+
+        >>> import tempfile
+
+        >>> out = n.write()
+        >>> os_handle,out_file = tempfile.mkstemp(dir='/tmp')
+        >>> f = open(out_file, 'w')
+        >>> f.write(out)
+        >>> f.close()
+
+        >>> import filecmp
+        >>> con_file = os.path.join(base_dir, 'data/multi.pipe')
+        >>> filecmp.cmp(con_file, out_file)
+        True
+        >>> import os
+        >>> os.close(os_handle)
+        """
+
+        # Filename
+        self.filename = os.path.split(txt)[1]
 
         start = 0
         end = 0
@@ -125,6 +230,50 @@ class Note_semeval(AbstractNote):
 
 
     def read(self, txt, con=None):            
+        """
+        Note_semeval::read()
+
+        @param txt. A file path for the tokenized medical record
+        @param con. A file path for the semeval annotated concepts for txt
+
+        >>> import os
+        >>> base_dir = os.path.join(os.getenv('CLINER_DIR'), 'tests')
+        >>> txt_file = os.path.join(base_dir, 'data/empty.txt')
+        >>> con_file = os.path.join(base_dir, 'data/empty.pipe')
+
+        >>> n2 = Note_semeval()
+        >>> n2.read(txt_file, con_file)
+        >>> n2.getText()
+        ''
+        >>> n2.getClassificationTuples()
+        []
+        >>> n2.getLineIndices()
+        []
+
+        >>> import os
+        >>> base_dir = os.path.join(os.getenv('CLINER_DIR'), 'tests')
+        >>> txt_file = os.path.join(base_dir, 'data/single.txt')
+        >>> con_file = os.path.join(base_dir, 'data/single.pipe')
+
+        >>> n4 = Note_semeval()
+        >>> n4.read(txt_file, con_file)
+        >>> n4.getText()
+        'The score stood four to two , with but one inning more to play ,'
+        >>> n4.getClassificationTuples()
+        [('problem', [(0, 27)])]
+        >>> n4.getLineIndices()
+        [(0, 64)]
+
+        >>> import os
+        >>> base_dir = os.path.join(os.getenv('CLINER_DIR'), 'tests')
+        >>> txt_file = os.path.join(base_dir, 'data/multi.txt')
+        >>> con_file = os.path.join(base_dir, 'data/multi.pipe')
+
+        >>> n4 = Note_semeval()
+        >>> n4.read(txt_file, con_file)
+        >>> n4.getClassificationTuples()
+        [('problem', [(8, 24)]), ('problem', [(87, 114)])]
+        """
 
         # Filename
         self.filename = os.path.split(txt)[1]
@@ -134,16 +283,17 @@ class Note_semeval(AbstractNote):
         with open(txt) as f:
 
             # Get entire file
-            text = f.read()
-            #print "\nTEXT:------------------"
-            #print text
+            text = f.read().strip()
+            #print "TEXT:------------------"
+            #print '<%s>' % text
 
             self.text = text
 
             # Sentence splitter
             sents = self.sent_tokenizer.tokenize(txt)
+            sents = [ s.strip() for s in sents ]
 
-            #print "\nSENTS:-----------------------------"
+            #print "SENTS:-----------------------------"
             #print sents
 
             # Tokenize each sentence into words (and save line number indices)
@@ -154,15 +304,13 @@ class Note_semeval(AbstractNote):
            
                 gold.append(s)
 
-                #print "\nsentence:-------------------------------"
-                #print s
-
+                #print "sentence:-------------------------------"
                 #print s
 
                 # Store data
                 toks = self.word_tokenizer.tokenize(s)
 
-                #print "\ntokenized sentence:---------------------------------"
+                #print "tokenized sentence:---------------------------------"
                 #print toks
 
                 self.data.append(toks)
@@ -170,13 +318,13 @@ class Note_semeval(AbstractNote):
                 # Keep track of which indices each line has
                 end = start + len(s)
 
-                #print "\nindices:--------------------------------------------"
+                #print "indices:--------------------------------------------"
                 #print (start, end)
 
-                #print "\nusing index on entire txt----------------------------"
+                #print "using index on entire txt----------------------------"
                 #print text[start:end]
 
-                #print "\nEQUAL?"
+                #print "EQUAL?"
                 #print text[start:end] == s
 
                 self.line_inds.append( (start,end) )
@@ -244,7 +392,39 @@ class Note_semeval(AbstractNote):
 
 
 
-    def write(self, labels):
+    def write(self, labels=None):
+
+        """
+        Note_semeval::write()
+
+        Purpose: Return the given concept label predictions in semeval format
+
+        @param  labels. A list of classifications
+        @return         A string of semeval-concept-file-formatted data
+
+        >>> import os
+        >>> base_dir = os.path.join(os.getenv('CLINER_DIR'), 'tests')
+        >>> txt_file = os.path.join(base_dir, 'data/multi.txt')
+        >>> con_file = os.path.join(base_dir, 'data/multi.pipe')
+
+        >>> n1 = Note_semeval()
+        >>> n1.read(txt_file, con_file)
+
+        >>> import tempfile
+
+        >>> os_handle,out_file = tempfile.mkstemp(dir='/tmp')
+
+        >>> out = n1.write()
+        >>> f = open(out_file, 'w')
+        >>> f.write(out)
+        >>> f.close()
+
+        >>> import filecmp
+        >>> filecmp.cmp(con_file, out_file)
+        True
+        >>> import os
+        >>> os.close(os_handle)
+        """
 
         # If given labels to write, use them. Default to self.classifications
         if labels != None:
@@ -266,18 +446,16 @@ class Note_semeval(AbstractNote):
                 span = lno_and_tokspan__to__char_span(inds,data,text,lno,tokspan)
                 classifications.append( (concept,span) )
 
+        # SemEval expects that all labels are "Disease_Disorder"
         elif self.classifications != None:
-            classifications = self.classifications
+            classifications = [('Disease_Disorder',i) for c,i in self.classifications]
         else:
             raise Exception('Cannot write concept file: must specify labels')
 
-        exit()
-
-        # return value
+        # Build output string
         retStr = ''
-
         for concept,span_inds in classifications:
-            retStr += self.fileName + '.text||%s||CUI-less' % concept
+            retStr += self.filename + '||%s||CUI-less' % concept
             for span in span_inds:
                 retStr += '||' + str(span[0]) + "||" +  str(span[1])
             retStr += '\n'

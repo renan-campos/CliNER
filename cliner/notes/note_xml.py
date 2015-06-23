@@ -27,7 +27,7 @@ from utilities_for_notes import classification_cmp, lineno_and_tokspan
 class Note_xml(AbstractNote):
 
     def __init__(self):
-        # Internal representation natural for i2b2 format
+        # Internal representation natural for xml format
         self.data            = []  # list of list of tokens
         self.classifications = []  # list of concept tuples
         self.line_inds       = []  # list of (start,end) line character offsets
@@ -38,14 +38,74 @@ class Note_xml(AbstractNote):
 
 
     def getText(self):
+        '''
+        Note_xml::getText()
+
+        Purpose: 
+
+        >>> import os
+        >>> base_dir = os.path.join(os.getenv('CLINER_DIR'), 'tests')
+        >>> txt_file = os.path.join(base_dir, 'data/multi.txt')
+        >>> con_file = os.path.join(base_dir, 'data/multi.xml')
+
+        >>> n = Note_xml()
+        >>> n.read(txt_file, con_file)
+        >>> out = n.getText()
+
+        >>> import tempfile
+
+        >>> os_handle,out_file = tempfile.mkstemp(dir='/tmp')
+        >>> f = open(out_file, 'w')
+        >>> print >>f, out
+        >>> f.close()
+
+        >>> import filecmp
+        >>> filecmp.cmp(txt_file, out_file)
+        True
+        >>> import os
+        >>> os.close(os_handle)
+        '''
         return self.text
 
 
     def getTokenizedSentences(self):
+        '''
+        Note_xml::getTokenizedSentences()
+
+        Purpose: Get tokenized sentences from file
+
+        Note: Could need to be updated if switching tokenizer
+
+        >>> import os
+        >>> base_dir = os.path.join(os.getenv('CLINER_DIR'), 'tests')
+        >>> txt_file = os.path.join(base_dir, 'data/multi.txt')
+        >>> con_file = os.path.join(base_dir, 'data/multi.xml')
+
+        >>> n = Note_xml()
+        >>> n.read(txt_file, con_file)
+        >>> n.getTokenizedSentences()
+        [['Title', ':'], ['Casey', 'at', 'the', 'Bat'], ['The', 'outlook', "wasn't", 'brilliant', 'for', 'the', 'Mudville', 'Nine', 'that', 'day', ';'], ['The', 'score', 'stood', 'four', 'to', 'two', ',', 'with', 'but', 'one', 'inning', 'more', 'to', 'play', ',']]
+        '''
         return self.data
 
 
     def getClassificationTuples(self):
+        '''
+        Note_xml::getClassificationTuples()
+
+        Purpose: Get the records that specify concept spans
+
+        >>> import os
+        >>> base_dir = os.path.join(os.getenv('CLINER_DIR'), 'tests')
+        >>> txt_file = os.path.join(base_dir, 'data/multi.txt')
+        >>> con_file = os.path.join(base_dir, 'data/multi.xml')
+
+        >>> n = Note_xml()
+        >>> n.read(txt_file, con_file)
+        >>> n.getClassificationTuples()
+        [('treatment', [(8, 24)]), ('problem', [(87, 114)])]
+        '''
+
         # return value
         retVal = []
 
@@ -87,6 +147,21 @@ class Note_xml(AbstractNote):
 
 
     def getLineIndices(self):
+        '''
+        Note_xml::getLineIndices()
+
+        Purpose: Get the list of (start,end) indices of line breaks in the text file.
+
+        >>> import os
+        >>> base_dir = os.path.join(os.getenv('CLINER_DIR'), 'tests')
+        >>> txt_file = os.path.join(base_dir, 'data/multi.txt')
+        >>> con_file = os.path.join(base_dir, 'data/multi.xml')
+
+        >>> n = Note_xml()
+        >>> n.read(txt_file, con_file)
+        >>> n.getLineIndices()
+        [(0, 7), (8, 24), (25, 86), (87, 151)]
+        '''
         return self.line_inds
 
 
@@ -97,6 +172,44 @@ class Note_xml(AbstractNote):
 
         @param txt. A file path for the tokenized medical record
         @param con. A file path for the xml annotated concepts for txt
+
+        >>> import os
+        >>> base_dir = os.path.join(os.getenv('CLINER_DIR'), 'tests')
+        >>> txt_file = os.path.join(base_dir, 'data/empty.txt')
+        >>> con_file = os.path.join(base_dir, 'data/empty.xml')
+
+        >>> n2 = Note_xml()
+        >>> n2.read(txt_file, con_file)
+        >>> n2.getText()
+        ''
+        >>> n2.getClassificationTuples()
+        []
+        >>> n2.getLineIndices()
+        []
+
+        >>> import os
+        >>> base_dir = os.path.join(os.getenv('CLINER_DIR'), 'tests')
+        >>> txt_file = os.path.join(base_dir, 'data/single.txt')
+        >>> con_file = os.path.join(base_dir, 'data/single.xml')
+
+        >>> n4 = Note_xml()
+        >>> n4.read(txt_file, con_file)
+        >>> n4.getText()
+        'The score stood four to two , with but one inning more to play ,'
+        >>> n4.getClassificationTuples()
+        [('problem', [(0, 27)])]
+        >>> n4.getLineIndices()
+        [(0, 64)]
+
+        >>> import os
+        >>> base_dir = os.path.join(os.getenv('CLINER_DIR'), 'tests')
+        >>> txt_file = os.path.join(base_dir, 'data/multi.txt')
+        >>> con_file = os.path.join(base_dir, 'data/multi.xml')
+
+        >>> n4 = Note_xml()
+        >>> n4.read(txt_file, con_file)
+        >>> n4.getClassificationTuples()
+        [('treatment', [(8, 24)]), ('problem', [(87, 114)])]
         """
 
         start = 0
@@ -107,21 +220,22 @@ class Note_xml(AbstractNote):
 
             # Get entire file
             text = f.read()
-            self.text = text
+            self.text = text.strip()
 
-            for line in text.split('\n'):
+            if self.text != '':
+                for line in self.text.split('\n'):
 
-                # Keep track of line's character offsets
-                for word in line.split():
-                    end += len(word) + 1
-                self.line_inds.append( (start,end-1) )
-                start = end
+                    # Keep track of line's character offsets
+                    for word in line.split():
+                        end += len(word) + 1
+                    self.line_inds.append( (start,end-1) )
+                    start = end
 
-                # Strip away non-printable characters
-                line = filter(lambda x: x in string.printable, line)
+                    # Strip away non-printable characters
+                    line = filter(lambda x: x in string.printable, line)
 
-                # Add sentence to the data list
-                self.data.append(line.split())
+                    # Add sentence to the data list
+                    self.data.append(line.split())
 
 
         # Read in the medical text
@@ -172,6 +286,28 @@ class Note_xml(AbstractNote):
 
         @param  labels. A list of predictions of labels for the given text.
         @return         A string for the xml-annotated file
+
+        >>> import os
+        >>> base_dir = os.path.join(os.getenv('CLINER_DIR'), 'tests')
+        >>> txt_file = os.path.join(base_dir, 'data/multi.txt')
+        >>> con_file = os.path.join(base_dir, 'data/multi.xml')
+
+        >>> n1 = Note_xml()
+        >>> n1.read(txt_file, con_file)
+
+        >>> import tempfile
+        >>> os_handle,out_file = tempfile.mkstemp(dir='/tmp')
+
+        >>> out = n1.write()
+        >>> f = open(out_file, 'w')
+        >>> f.write(out)
+        >>> f.close()
+
+        >>> import filecmp
+        >>> filecmp.cmp(con_file, out_file)
+        True
+        >>> import os
+        >>> os.close(os_handle)
         """
 
 
@@ -220,17 +356,40 @@ class Note_xml(AbstractNote):
         toks = [  ' '.join(s)  for  s  in toks  ]
         output = '\n'.join(toks)
 
-        return output
+        return output + '\n'
 
 
 
     def read_standard(self, txt, con=None):
-
         """
         Note_xml::read_standard()
 
         @param txt. A file path for the tokenized medical record
         @param con. A file path for the standardized annotated concepts for txt
+
+        >>> import os
+        >>> base_dir = os.path.join(os.getenv('CLINER_DIR'), 'tests')
+        >>> txt_file      = os.path.join(base_dir, 'data/multi.txt'     )
+        >>> standard_file = os.path.join(base_dir, 'data/multi.standard')
+
+        >>> n = Note_xml()
+        >>> n.read_standard(txt_file, standard_file)
+
+        >>> import tempfile
+
+        >>> out = n.write()
+        >>> os_handle,out_file = tempfile.mkstemp(dir='/tmp')
+        >>> out_file = 'a.txt'
+        >>> f = open(out_file, 'w')
+        >>> f.write(out)
+        >>> f.close()
+
+        >>> import filecmp
+        >>> xml_file = os.path.join(base_dir, 'data/multi.xml')
+        >>> filecmp.cmp(xml_file, out_file)
+        True
+        >>> import os
+        >>> os.close(os_handle)
         """
 
         start = 0
@@ -239,7 +398,7 @@ class Note_xml(AbstractNote):
         with open(txt) as f:
 
             # Get entire file
-            text = f.read()
+            text = f.read().strip()
             self.text = text
 
             # Split into lines
