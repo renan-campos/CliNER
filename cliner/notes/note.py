@@ -405,12 +405,16 @@ class Note:
 
         >>> n = Note('i2b2')
         >>> n.read(txt_file, con_file)
+
+        >>> n.getChunkedText()
+        [['Title', ':'], ['Casey at the Bat'], ['The', 'outlook', "wasn't", 'brilliant', 'for', 'the', 'Mudville', 'Nine', 'that', 'day', ';'], ['The score stood four to two', ',', 'with', 'but', 'one', 'inning', 'more', 'to', 'play', ',']]
+
         >>> n.getChunkedText()
         [['Title', ':'], ['Casey at the Bat'], ['The', 'outlook', "wasn't", 'brilliant', 'for', 'the', 'Mudville', 'Nine', 'that', 'day', ';'], ['The score stood four to two', ',', 'with', 'but', 'one', 'inning', 'more', 'to', 'play', ',']]
         """
 
         # Memoized?
-        if self.text_chunks: return self.text_chunks()
+        if self.text_chunks: return self.text_chunks
 
         # Line-by-line chunking
         text = self.getTokenizedSentences()

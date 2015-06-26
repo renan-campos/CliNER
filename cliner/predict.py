@@ -69,7 +69,7 @@ def main():
 
 
 
-def predict(files, model_path, output_dir, format):
+def predict(files, model_path, output_dir, format, out_handle=sys.stdout):
 
     # Must specify output format
     if format not in Note.supportedFormats():
@@ -78,34 +78,27 @@ def predict(files, model_path, output_dir, format):
         print >>sys.stderr, ''
         exit(1)
 
-
-
     # Load model
     model = Model.load(model_path)
-
 
     # Tell user if not predicting
     if not files:
         print >>sys.stderr, "\n\tNote: You did not supply any input files\n"
         exit()
 
-
     # For each file, predict concept labels
     n = len(files)
     for i,txt in enumerate(sorted(files)):
-
         # Read the data into a Note object
         note = Note(format)
         note.read(txt)
-
 
         print '-' * 30
         print '\n\t%d of %d' % (i+1,n)
         print '\t', txt, '\n'
 
-
         # Predict concept labels
-        labels = model.predict(note)
+        labels = model.predict(note, out_handle)
 
         # Get predictions in proper format
         extension = note.getExtension()

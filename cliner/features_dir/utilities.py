@@ -13,8 +13,8 @@ import os
 
 
 # used as a default path for stashing pos tagger.
-pos_tagger_path = os.path.join( os.environ['CLINER_DIR'], "cliner', 'features_dir', 
-                                'nltk_tagger.p")
+pos_tagger_path = os.path.join(os.environ['CLINER_DIR'],'cliner','features_dir',
+                               'nltk_tagger.p')
 
 if not os.path.isfile(pos_tagger_path):
     import nltk.data, nltk.tag

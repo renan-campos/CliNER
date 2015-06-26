@@ -8,23 +8,22 @@
 
 
 __author__ = 'Willie Boag'
-__date__   = 'Oct. 5, 2014'
+__date__   = 'June 23, 2015'
 
 
 import os
-import os.path
 import glob
 import argparse
 import sys
 import cPickle as pickle
 
 import helper
-from sets import Set
 from model import Model
 from notes.note import Note
 
 
 def main():
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-t",
@@ -67,45 +66,55 @@ def main():
     args = parser.parse_args()
     is_crf = not args.nocrf
 
-
-    # A list of text    file paths
-    # A list of concept file paths
+    # lists of text & concept file paths
     txt_files = glob.glob(args.txt)
     con_files = glob.glob(args.con)
 
-
-    # data format
-    format = args.format
-
-
     # Must specify output format
-    if format not in Note.supportedFormats():
+    if args.format not in Note.supportedFormats():
         print >>sys.stderr, '\n\tError: Must specify output format'
         print >>sys.stderr,   '\tAvailable formats: ', ' | '.join(Note.supportedFormats())
         print >>sys.stderr, ''
         exit(1)
 
-
-    # Collect training data file paths
-    txt_files_map = helper.map_files(txt_files) # ex. {'record-13': 'record-13.con'}
+    # Collect training data file paths     e.g. {'record-13': 'record-13.con'}
+    txt_files_map = helper.map_files(txt_files) 
     con_files_map = helper.map_files(con_files)
 
-    training_list = []                          # ex. training_list =  [ ('record-13.txt', 'record-13.con') ]
+    # e.g. training_list =  [ ('record-13.txt', 'record-13.con') ]
+    training_list = []
     for k in txt_files_map:
         if k in con_files_map:
             training_list.append((txt_files_map[k], con_files_map[k]))
 
-
     # display file names (for user to see data was properly located)
-    print '\n', training_list, '\n'
-
+    print '\ntraining on %d files\n' % len(training_list)
 
     # Train the model
-    train(training_list, args.model, format, is_crf=is_crf, grid=args.grid)
+    train(training_list, args.model, args.format, is_crf=is_crf, grid=args.grid)
 
 
 
-def train(training_list, model_path, format, is_crf=True, grid=False):
+def train(training_list, model_p, format, is_crf=True, grid=False, out_handle=sys.stdout):
+
+    '''
+    train.py :: train()
+
+    Purpose: Build CliNER model from training data
+
+    >>> base_dir = os.path.join(os.getenv('CLINER_DIR'), 'examples')
+    >>> training_list = [ (os.path.join(base_dir,'pretend.txt') ,  \
+                           os.path.join(base_dir,'pretend.con') )  ]
+    >>> model_path = os.path.join(os.getenv('CLINER_DIR'), 'models', 'testing.model')
+    >>> format = 'i2b2'
+    >>> is_crf = True
+    >>> grid = False
+
+    #>>> out_handle = open('a.txt')
+
+    #>>> train(training_list, model_path, format, is_crf, grid, out_handle)
+    
+    '''
 
     # Read the data into a Note object
     notes = []
@@ -114,24 +123,19 @@ def train(training_list, model_path, format, is_crf=True, grid=False):
         note_tmp.read(txt, con)       # Read data into Note
         notes.append(note_tmp)        # Add the Note to the list
 
-
-    # file names
     if not notes:
-        print 'Error: Cannot train on 0 files. Terminating train.'
+        print >>sys.stderr, 'Error: Cannot train on 0 files. Terminating train.'
         return 1
-
 
     # Create a Machine Learning model
     model = Model(is_crf=is_crf)
 
-
     # Train the model using the Note's data
-    model.train(notes, grid)
-
+    model.train(notes, grid, out_handle)
 
     # Pickle dump
-    print 'pickle dump'
-    with open(model_path, "wb") as m_file:
+    print >>out_handle, 'pickle dump'
+    with open(model_p, "wb") as m_file:
         pickle.dump(model, m_file)
 
 
